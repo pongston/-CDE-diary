@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#26221a">
+<title>คำนวณการเบิกใช้ทราย  CDE — Complete</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e5e1d6; --paper:#faf8f2; --paper-2:#f1eee3; --ink:#26221a;
+  --ink-soft:#645f4f; --ink-faint:#8a8471; --line:#d9d3c1; --line-strong:#c3bca5;
+  --cde:#3d5a66; --cde-soft:#e3ecee; --cde-strong:#2b4048;
+  --normal:#a97a34; --normal-soft:#f4e9d3; --normal-strong:#7c581f;
+  --btn-bg:#26221a; --btn-ink:#faf8f2; --danger:#a5392c; --danger-soft:#f5e0dc;
+  --success:#426b4a; --success-soft:#e3eee5; --focus:#3d5a66;
+  --radius:12px; --radius-sm:8px;
+  --shadow:0 1px 2px rgba(30,26,16,.07),0 1px 1px rgba(30,26,16,.04);
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#16140f; --paper:#211d16; --paper-2:#2a251c; --ink:#efe9da;
+  --ink-soft:#b6ae98; --ink-faint:#847d68; --line:#3a3325; --line-strong:#4a422f;
+  --cde:#8fb7c4; --cde-soft:#213137; --cde-strong:#bcdae2; --normal:#e0b877;
+  --normal-soft:#332a17; --normal-strong:#f0d29d; --btn-bg:#efe9da; --btn-ink:#1c1912;
+  --danger:#e2988c; --danger-soft:#3a231e; --success:#a7c7ad; --success-soft:#26352a;
+  --focus:#8fb7c4; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Noto Sans Thai","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  -webkit-text-size-adjust:100%;
+}
+button,input,select{font-family:inherit}
+button{touch-action:manipulation}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.topbar{
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.16),rgba(0,0,0,0) 40%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 22px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 22px),var(--btn-bg);
+  color:var(--btn-ink);padding:calc(18px + env(safe-area-inset-top,0px)) 16px 18px;
+}
+.topbar-inner{max-width:860px;margin:0 auto}
+.topbar-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.topbar h1{margin:0 0 4px;font-size:1.28rem;font-weight:700}
+.topbar p{margin:0;font-size:.82rem;opacity:.78;line-height:1.5}
+.top-actions{display:flex;gap:6px}
+.top-actions .btn{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:inherit}
+.container{max-width:860px;margin:0 auto;padding:16px 14px 52px}
+.hero{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin:-32px 0 16px;box-shadow:var(--shadow)
+}
+.hero-cell{background:var(--paper);padding:15px 13px}
+.hero-label{font-size:.7rem;color:var(--ink-soft);margin:0 0 6px}
+.hero-value{font-size:1.55rem;font-weight:700;line-height:1.1;margin:0}
+.hero-value.cde{color:var(--cde-strong)} .hero-value.normal{color:var(--normal-strong)}
+.hero-value.total{color:var(--ink)}
+.hero-unit{font-size:.78rem;font-weight:500;color:var(--ink-soft);margin-left:2px}
+.hero-sub{font-size:.68rem;color:var(--ink-faint);margin-top:6px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:15px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h2{font-size:.96rem;margin:0 0 11px;font-weight:600}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px}
+.section-head h2{margin:0}
+.notice{background:var(--normal-soft);border:1px solid var(--line);border-left:3px solid var(--normal);border-radius:var(--radius-sm);padding:10px 11px;font-size:.78rem;line-height:1.55;color:var(--ink-soft);margin-bottom:13px}
+.notice strong{color:var(--ink)}
+.sync-badge{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;color:var(--ink-faint);padding:3px 0 10px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--cde)}
+.sync-dot.offline{background:var(--ink-faint)}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius-sm)}
+table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:650px}
+thead th{text-align:left;font-weight:600;font-size:.7rem;color:var(--ink-soft);background:var(--paper-2);padding:8px 9px;white-space:nowrap;border-bottom:1px solid var(--line)}
+tbody td{padding:6px 9px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:var(--paper-2)}
+td.num,th.num{text-align:right}
+.cell-input{
+  width:100%;min-width:60px;border:1px solid transparent;background:transparent;
+  font:inherit;color:inherit;padding:5px;border-radius:6px
+}
+.cell-input:hover{border-color:var(--line-strong)}
+.cell-input:focus{outline:none;border-color:var(--focus);background:var(--paper)}
+.cell-input.num-field{text-align:right}.cell-input.code-field{font-weight:600;min-width:90px}
+.tag{display:inline-block;font-size:.66rem;padding:1px 6px;border-radius:99px;background:var(--paper-2);color:var(--ink-soft);border:1px solid var(--line);white-space:nowrap}
+.tag.warn{background:var(--normal-soft);color:var(--normal-strong);border-color:var(--normal)}
+.icon-btn{border:none;background:transparent;color:var(--ink-faint);cursor:pointer;padding:6px 8px;border-radius:6px;font-size:.92rem;line-height:1}
+.icon-btn:hover{background:var(--danger-soft);color:var(--danger)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line-strong);
+  background:var(--paper);color:var(--ink);font:inherit;font-weight:600;font-size:.8rem;
+  padding:8px 12px;border-radius:var(--radius-sm);cursor:pointer
+}
+.btn:active{transform:translateY(1px)}
+.btn.btn-primary{background:var(--btn-bg);color:var(--btn-ink);border-color:var(--btn-bg);width:100%;padding:11px 13px;font-size:.9rem}
+.btn.btn-primary:disabled{opacity:.45;cursor:not-allowed}.btn.btn-ghost{background:transparent}
+.btn.small{padding:6px 9px;font-size:.72rem}.btn.danger{color:var(--danger)}
+.btn.success{color:var(--success);border-color:var(--success)}
+.btn:focus-visible,.cell-input:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.field{display:flex;flex-direction:column;gap:5px;font-size:.76rem;color:var(--ink-soft)}
+.field input,.field select{
+  font:inherit;font-size:.92rem;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:9px 9px;width:100%
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--focus)}
+.calc-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.calc-preview{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:11px
+}
+.preview-cell{background:var(--paper-2);padding:10px}
+.preview-label{font-size:.68rem;color:var(--ink-soft);margin-bottom:3px}
+.preview-value{font-size:1.08rem;font-weight:700}
+.preview-value.cde{color:var(--cde-strong)} .preview-value.normal{color:var(--normal-strong)}
+.preview-unit{font-size:.7rem;color:var(--ink-faint);margin-left:2px}
+.validation{min-height:20px;font-size:.75rem;line-height:1.45;margin:7px 0 10px}
+.validation.ok{color:var(--success)}.validation.warn{color:var(--normal-strong)}.validation.err{color:var(--danger)}
+.empty{padding:18px 10px;text-align:center;color:var(--ink-faint);font-size:.78rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.toolbar .spacer{flex:1}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px}
+.stat-label{font-size:.68rem;color:var(--ink-soft)}.stat-value{font-size:1.05rem;font-weight:700;margin-top:3px}
+.bar-list{display:grid;gap:9px}
+.bar-row{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center}
+.bar-label{font-size:.72rem;color:var(--ink-soft);text-align:right}
+.bar-track{height:10px;background:var(--paper-2);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;min-width:0}.bar-fill.cde{background:var(--cde)}.bar-fill.normal{background:var(--normal)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 12px;font-size:.7rem;color:var(--ink-soft)}
+.legend-item{display:inline-flex;align-items:center;gap:5px}.legend-dot{width:8px;height:8px;border-radius:50%}
+.legend-dot.cde{background:var(--cde)}.legend-dot.normal{background:var(--normal)}
+.search{max-width:240px}
+.search input{padding:7px 9px;font-size:.78rem}
+.footer{text-align:center;color:var(--ink-faint);font-size:.68rem;padding:4px 0 20px}
+.toast{
+  position:fixed;left:50%;bottom:18px;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  background:var(--btn-bg);color:var(--btn-ink);padding:9px 13px;border-radius:9px;font-size:.76rem;
+  box-shadow:0 5px 20px rgba(0,0,0,.2);transition:.18s ease;z-index:50;white-space:nowrap
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:700px){
+  .hero{grid-template-columns:1fr 1fr}.hero-cell:last-child{grid-column:1/-1}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .topbar-row{align-items:center}.topbar h1{font-size:1.12rem}
+  .top-actions .btn span{display:none}.top-actions .btn{padding:7px 9px}
+  .calc-grid{grid-template-columns:1fr}.calc-preview{grid-template-columns:1fr}
+  .hero-value{font-size:1.35rem}.container{padding-left:10px;padding-right:10px}
+  .toolbar .search{max-width:none;width:100%}
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){color-scheme:dark}
+}
+
+  /* ---------- Print / PDF report ---------- */
+  .print-only{display:none;}
+  @media print{
+    @page{size:A4 portrait;margin:12mm;}
+    body{background:#fff !important;color:#111 !important;padding:0 !important;}
+    .topbar,.hero,.card:not(#historyCard),button,.sync-badge,.notice,
+    #mixTableCard,#calcCard,#dashboardCard,.no-print{display:none !important;}
+    #historyCard{display:block !important;border:none !important;box-shadow:none !important;margin:0 !important;padding:0 !important;background:#fff !important;}
+    #historyCard .section-head{display:block !important;margin-bottom:12px;}
+    #historyCard .section-head h2{font-size:18px !important;}
+    .print-only{display:block !important;}
+    .table-wrap{overflow:visible !important;border:1px solid #aaa !important;}
+    table{min-width:0 !important;width:100% !important;font-size:10pt !important;}
+    thead th{position:static !important;background:#eee !important;color:#111 !important;}
+    tbody td{color:#111 !important;border-color:#ccc !important;}
+    #logEmpty{display:none !important;}
+    .print-report-header{display:block !important;}
+  }
+  .print-report-header{display:none;}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-row">
+      <div>
+        <h1>คำนวณการเบิกใช้ทราย CDE จัดทำโดย Belly pongston</h1>
+        <p>CDE Sand Usage Control System · คำนวณ • บันทึก • สรุป • ตรวจสอบ</p>
+      </div>
+      <div class="top-actions">
+        <button id="themeBtn" class="btn" type="button" title="สลับธีม">◐ <span>ธีม</span></button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="hero" aria-label="สรุปยอด">
+    <div class="hero-cell">
+      <div class="hero-label">CDE วันนี้</div>
+      <p class="hero-value cde num"><span id="heroCdeToday">0.000</span><span class="hero-unit">ตัน</span></p>
+      <div class="hero-sub" id="heroCdeTodaySub">0 รายการวันนี้</div>
+    </div>
+    <div class="hero-cell">
+      <div class="hero-label">ทรายธรรมดา วันนี้</div>
+      <p class="hero-value normal num"><span id="heroNormalToday">0.000</span><span class="hero-unit">ตัน</span></p>
+      <div class="hero-sub">รวมจากรายการที่บันทึกวันนี้</div>
+    </div>
+    <div class="hero-cell">
+      <div class="hero-label">CDE สะสมทั้งหมด</div>
+      <p class="hero-value total num"><span id="heroCdeAll">0.000</span><span class="hero-unit">ตัน</span></p>
+      <div class="hero-sub" id="heroTotalSub">ข้อมูลในระบบ</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2>1. บันทึกการเบิกใช้</h2>
+      <span class="tag" id="recordStatus">พร้อมใช้งาน</span>
+    </div>
+    <div class="notice">
+      <strong>วิธีใช้:</strong> เลือกรหัสมิกซ์ → ใส่จำนวนคอนกรีต (m³) → ตรวจสอบ Preview → กด “บันทึกการเบิก”
+      ระบบจะคำนวณน้ำหนัก CDE และทรายธรรมดาจากค่าที่กำหนดในมิกซ์นั้นโดยอัตโนมัติ
+    </div>
+    <div class="sync-badge"><span id="syncDot" class="sync-dot offline"></span><span id="syncText">บันทึกในเบราว์เซอร์นี้</span></div>
+
+    <div class="calc-grid">
+      <label class="field">วันที่
+        <input id="dateInput" type="date">
+      </label>
+      <label class="field">รหัสมิกซ์
+        <select id="mixSelect"></select>
+      </label>
+      <label class="field">จำนวนคอนกรีต (m³)
+        <input id="qtyInput" type="number" min="0" step="0.01" inputmode="decimal" placeholder="เช่น 10">
+      </label>
+    </div>
+
+    <div class="calc-preview">
+      <div class="preview-cell">
+        <div class="preview-label">CDE ที่ต้องใช้</div>
+        <div class="preview-value cde num"><span id="previewCde">0.000</span><span class="preview-unit">ตัน</span></div>
+      </div>
+      <div class="preview-cell">
+        <div class="preview-label">ทรายธรรมดาที่ต้องใช้</div>
+        <div class="preview-value normal num"><span id="previewNormal">0.000</span><span class="preview-unit">ตัน</span></div>
+      </div>
+      <div class="preview-cell">
+        <div class="preview-label">ทรายรวม</div>
+        <div class="preview-value num"><span id="previewTotal">0.000</span><span class="preview-unit">ตัน</span></div>
+      </div>
+    </div>
+    <div id="calcValidation" class="validation"></div>
+    <button id="addEntryBtn" class="btn btn-primary" type="button" disabled>＋ บันทึกการเบิก</button>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2>2. ตารางข้อมูลมิกซ์</h2>
+      <button id="addMixBtn" class="btn small" type="button">＋ เพิ่มมิกซ์</button>
+    </div>
+    <div class="notice">
+      ค่า CDE และทรายธรรมดาเป็น <strong>kg/m³</strong> ของแต่ละมิกซ์ เมื่อแก้ไขระบบจะบันทึกให้อัตโนมัติ
+      และรายการเบิกใหม่จะใช้ค่าล่าสุด
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>รหัสมิกซ์</th>
+            <th>สัดส่วน / Variant</th>
+            <th class="num">CDE kg/m³</th>
+            <th class="num">ทรายธรรมดา kg/m³</th>
+            <th>หมายเหตุ</th>
+            <th>สถานะ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="mixTableBody"></tbody>
+      </table>
+      <div id="mixEmpty" class="empty">ยังไม่มีข้อมูลมิกซ์ — กด “เพิ่มมิกซ์” เพื่อเริ่มต้น</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2>3. Dashboard</h2>
+      <button id="clearEntriesBtn" class="btn small danger" type="button">ล้างประวัติการเบิก</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">จำนวนรายการ</div><div class="stat-value num" id="statEntries">0</div></div>
+      <div class="stat"><div class="stat-label">คอนกรีตรวม</div><div class="stat-value num" id="statQty">0.00 m³</div></div>
+      <div class="stat"><div class="stat-label">CDE รวม</div><div class="stat-value num" id="statCde">0.000 ตัน</div></div>
+      <div class="stat"><div class="stat-label">ทรายธรรมดารวม</div><div class="stat-value num" id="statNormal">0.000 ตัน</div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2>4. สรุปตามมิกซ์</h2>
+      <div class="toolbar">
+        <label class="search"><input id="mixSummarySearch" type="search" placeholder="ค้นหา Mix / Variant"></label>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>มิกซ์</th><th class="num">m³</th><th class="num">CDE (ตัน)</th><th class="num">ทรายธรรมดา (ตัน)</th><th class="num">สัดส่วน CDE</th></tr></thead>
+        <tbody id="mixSummaryBody"></tbody>
+      </table>
+      <div id="mixSummaryEmpty" class="empty">ยังไม่มีรายการเบิก</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2>5. แนวโน้มรายวัน</h2>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot cde"></span>CDE</span>
+      <span class="legend-item"><span class="legend-dot normal"></span>ทรายธรรมดา</span>
+    </div>
+    <div id="dailyBars" class="bar-list"></div>
+    <div id="dailyEmpty" class="empty">ยังไม่มีข้อมูลรายวัน</div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2>6. ประวัติการเบิก</h2>
+      <div class="toolbar">
+        <label class="search"><input id="logSearch" type="search" placeholder="ค้นหา วันที่ / Mix"></label>
+        <button id="exportCsvBtn" class="btn small" type="button">⇩ CSV</button>
+        <button id="exportJsonBtn" class="btn small" type="button">⇩ Backup</button>
+        <label class="btn small" for="importJsonInput">⇧ Restore</label>
+        <input id="importJsonInput" type="file" accept=".json,application/json" hidden>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>วันที่</th><th>รหัสมิกซ์</th><th class="num">m³</th><th class="num">CDE (ตัน)</th><th class="num">ทรายธรรมดา (ตัน)</th><th></th></tr></thead>
+        <tbody id="logTableBody"></tbody>
+      </table>
+      <div id="logEmpty" class="empty">ยังไม่มีรายการเบิก</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><h2>7. จัดการข้อมูลระบบ</h2></div>
+    <div class="toolbar">
+      <button id="resetBtn" class="btn small danger" type="button">รีเซ็ตข้อมูลทั้งหมด</button>
+      <button id="refreshBtn" class="btn small" type="button">↻ รีเฟรช</button>
+      <span class="spacer"></span>
+      <span class="tag">LocalStorage + DB adapter (ถ้ามี)</span>
+    </div>
+  </section>
+
+  <div class="footer">CDE Sand Usage Control System · เวอร์ชัน Complete · ทำงาน Offline ได้</div>
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  const STORAGE = {
+    mixes: 'cde-sand-usage-mixes-v2',
+    entries: 'cde-sand-usage-entries-v2',
+    theme: 'cde-sand-usage-theme-v2'
+  };
+
+  let mixes = [];
+  let entries = [];
+  let usingDb = false;
+  let mixesCol = null;
+  let entriesCol = null;
+  let downloadsApi = null;
+  let toastTimer = null;
+
+  const $ = id => document.getElementById(id);
+
+  function uid(prefix){
+    return (prefix || 'id') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+  }
+
+  function todayStr(){
+    const d = new Date();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + m + '-' + day;
+  }
+
+  function fmt(v, digits){
+    const n = Number(v);
+    return Number.isFinite(n) ? n.toLocaleString('th-TH',{minimumFractionDigits:digits,maximumFractionDigits:digits}) : '0.' + '0'.repeat(digits);
+  }
+
+  function esc(v){
+    return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function escCsv(v){
+    const s = String(v ?? '');
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
+
+  function toast(msg){
+    $('toast').textContent = msg;
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>$('toast').classList.remove('show'),1800);
+  }
+
+  function normalizeMix(m){
+    return {
+      id: m.id || uid('mix'),
+      code: String(m.code ?? '').trim(),
+      variant: String(m.variant ?? '').trim(),
+      cde: Math.max(0, Number(m.cde) || 0),
+      normal: Math.max(0, Number(m.normal) || 0),
+      note: String(m.note ?? '').trim(),
+      updatedAt: Number(m.updatedAt) || Date.now()
+    };
+  }
+
+  function normalizeEntry(e){
+    return {
+      id: e.id || uid('entry'),
+      mixId: e.mixId || '',
+      code: String(e.code ?? ''),
+      variant: String(e.variant ?? ''),
+      cde: Math.max(0, Number(e.cde) || 0),
+      normal: Math.max(0, Number(e.normal) || 0),
+      qty: Math.max(0, Number(e.qty) || 0),
+      cdeTon: Math.max(0, Number(e.cdeTon) || 0),
+      normalTon: Math.max(0, Number(e.normalTon) || 0),
+      date: /^\d{4}-\d{2}-\d{2}$/.test(e.date || '') ? e.date : todayStr(),
+      createdAt: Number(e.createdAt) || Date.now()
+    };
+  }
+
+  function saveLocal(){
+    localStorage.setItem(STORAGE.mixes, JSON.stringify(mixes));
+    localStorage.setItem(STORAGE.entries, JSON.stringify(entries));
+  }
+
+  function loadLocal(){
+    try{
+      const m = JSON.parse(localStorage.getItem(STORAGE.mixes) || '[]');
+      const e = JSON.parse(localStorage.getItem(STORAGE.entries) || '[]');
+      mixes = Array.isArray(m) ? m.map(normalizeMix) : [];
+      entries = Array.isArray(e) ? e.map(normalizeEntry) : [];
+    }catch(err){
+      mixes = []; entries = [];
+    }
+    renderAll();
+  }
+
+  function updateSyncBadge(){
+    $('syncDot').classList.toggle('offline', !usingDb);
+    $('syncText').textContent = usingDb
+      ? 'ซิงค์อัตโนมัติ — ใช้ฐานข้อมูลที่เชื่อมต่ออยู่'
+      : 'บันทึกในเบราว์เซอร์นี้ (Offline / LocalStorage)';
+  }
+
+  async function dbAdd(col, data){
+    if(!col) return;
+    if(typeof col.add === 'function') return col.add(data);
+    if(typeof col.create === 'function') return col.create(data);
+    return null;
+  }
+
+  async function dbSet(col, id, data){
+    if(!col) return;
+    if(typeof col.doc === 'function'){
+      const doc = col.doc(id);
+      if(doc && typeof doc.set === 'function') return doc.set(data);
+      if(doc && typeof doc.update === 'function') return doc.update(data);
+    }
+    if(typeof col.update === 'function') return col.update(id,data);
+    if(typeof col.set === 'function') return col.set(id,data);
+  }
+
+  async function dbDelete(col, id){
+    if(!col) return;
+    if(typeof col.doc === 'function'){
+      const doc = col.doc(id);
+      if(doc && typeof doc.delete === 'function') return doc.delete();
+      if(doc && typeof doc.remove === 'function') return doc.remove();
+    }
+    if(typeof col.delete === 'function') return col.delete(id);
+    if(typeof col.remove === 'function') return col.remove(id);
+  }
+
+  function addMix(data){
+    const mix = normalizeMix(data);
+    if(!mix.code) mix.code = 'มิกซ์ใหม่';
+    mixes.push(mix);
+    saveLocal();
+    if(usingDb) dbAdd(mixesCol,mix).catch(()=>{});
+    renderAll();
+    toast('เพิ่มมิกซ์แล้ว');
+    return mix;
+  }
+
+  function updateMix(id, patch){
+    const i = mixes.findIndex(x=>x.id===id);
+    if(i < 0) return;
+    mixes[i] = normalizeMix({...mixes[i],...patch,updatedAt:Date.now()});
+    saveLocal();
+    if(usingDb) dbSet(mixesCol,id,mixes[i]).catch(()=>{});
+    renderAll();
+  }
+
+  function deleteMix(id){
+    const mix = mixes.find(x=>x.id===id);
+    if(!mix) return;
+    if(!confirm('ลบมิกซ์ "' + (mix.code || '-') + '" ?\nรายการประวัติเดิมจะไม่ถูกลบ')) return;
+    mixes = mixes.filter(x=>x.id!==id);
+    saveLocal();
+    if(usingDb) dbDelete(mixesCol,id).catch(()=>{});
+    renderAll();
+    toast('ลบมิกซ์แล้ว');
+  }
+
+  function addEntry(data){
+    const entry = normalizeEntry(data);
+    entries.push(entry);
+    saveLocal();
+    if(usingDb) dbAdd(entriesCol,entry).catch(()=>{});
+    renderAll();
+    toast('บันทึกการเบิกแล้ว');
+  }
+
+  function deleteEntry(id){
+    const entry = entries.find(x=>x.id===id);
+    if(!entry) return;
+    if(!confirm('ลบรายการเบิกนี้หรือไม่?')) return;
+    entries = entries.filter(x=>x.id!==id);
+    saveLocal();
+    if(usingDb) dbDelete(entriesCol,id).catch(()=>{});
+    renderAll();
+    toast('ลบรายการแล้ว');
+  }
+
+  function currentSelectedMix(){
+    return mixes.find(m=>m.id === $('mixSelect').value) || null;
+  }
+
+  function renderMixSelect(){
+    const select = $('mixSelect');
+    const previous = select.value;
+    select.innerHTML = '';
+    if(!mixes.length){
+      select.innerHTML = '<option value="">— ยังไม่มีมิกซ์ —</option>';
+      return;
+    }
+    mixes.slice().sort((a,b)=>a.code.localeCompare(b.code,'th')).forEach(m=>{
+      const o = document.createElement('option');
+      o.value = m.id;
+      o.textContent = m.variant ? m.code + ' — ' + m.variant : m.code;
+      select.appendChild(o);
+    });
+    if(mixes.some(m=>m.id===previous)) select.value = previous;
+    else select.selectedIndex = 0;
+  }
+
+  function renderMixTable(){
+    const tbody = $('mixTableBody');
+    tbody.innerHTML = '';
+    $('mixEmpty').style.display = mixes.length ? 'none' : 'block';
+
+    mixes.slice().sort((a,b)=>a.code.localeCompare(b.code,'th')).forEach(m=>{
+      const tr = document.createElement('tr');
+
+      function input(value, cls, type, field){
+        const el = document.createElement('input');
+        el.className = 'cell-input ' + (cls || '');
+        el.type = type || 'text';
+        el.value = value ?? '';
+        el.dataset.field = field;
+        el.setAttribute('aria-label',field);
+        el.addEventListener('change',()=>{
+          let v = el.value;
+          if(type === 'number') v = Math.max(0,Number(v)||0);
+          updateMix(m.id,{[field]:v});
+        });
+        return el;
+      }
+
+      const tdCode = document.createElement('td'); tdCode.appendChild(input(m.code,'code-field','text','code'));
+      const tdVariant = document.createElement('td'); tdVariant.appendChild(input(m.variant,'','text','variant'));
+      const tdCde = document.createElement('td'); tdCde.className='num'; tdCde.appendChild(input(m.cde,'num-field','number','cde'));
+      const tdNormal = document.createElement('td'); tdNormal.className='num'; tdNormal.appendChild(input(m.normal,'num-field','number','normal'));
+      const tdNote = document.createElement('td'); tdNote.appendChild(input(m.note,'','text','note'));
+
+      const tdStatus = document.createElement('td');
+      const status = document.createElement('span');
+      status.className = 'tag ' + ((m.cde + m.normal) > 0 ? '' : 'warn');
+      status.textContent = (m.cde + m.normal) > 0 ? 'พร้อมใช้' : 'รอกรอกค่า';
+      tdStatus.appendChild(status);
+
+      const tdDel = document.createElement('td');
+      const btn = document.createElement('button');
+      btn.className='icon-btn'; btn.type='button'; btn.textContent='✕'; btn.title='ลบมิกซ์';
+      btn.addEventListener('click',()=>deleteMix(m.id));
+      tdDel.appendChild(btn);
+
+      [tdCode,tdVariant,tdCde,tdNormal,tdNote,tdStatus,tdDel].forEach(td=>tr.appendChild(td));
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateCalcPreview(){
+    const mix = currentSelectedMix();
+    const qty = Number($('qtyInput').value) || 0;
+    const cdeKg = mix ? mix.cde * qty : 0;
+    const normalKg = mix ? mix.normal * qty : 0;
+    const cdeTon = cdeKg / 1000;
+    const normalTon = normalKg / 1000;
+    $('previewCde').textContent = fmt(cdeTon,3);
+    $('previewNormal').textContent = fmt(normalTon,3);
+    $('previewTotal').textContent = fmt(cdeTon+normalTon,3);
+
+    const v = $('calcValidation');
+    if(!mix){
+      v.className='validation warn'; v.textContent='กรุณาเพิ่มและเลือกมิกซ์ก่อนบันทึก';
+      $('addEntryBtn').disabled=true; return;
+    }
+    if(qty <= 0){
+      v.className='validation warn'; v.textContent='กรอกจำนวนคอนกรีตมากกว่า 0 m³';
+      $('addEntryBtn').disabled=true; return;
+    }
+    if(mix.cde <= 0 && mix.normal <= 0){
+      v.className='validation err'; v.textContent='มิกซ์นี้ยังไม่มีค่าการใช้ CDE/ทรายธรรมดา';
+      $('addEntryBtn').disabled=true; return;
+    }
+    v.className='validation ok';
+    v.textContent='ตรวจสอบแล้ว: ' + mix.code + ' · ' + fmt(qty,2) + ' m³';
+    $('addEntryBtn').disabled=false;
+  }
+
+  function renderHero(){
+    const today = todayStr();
+    const todayEntries = entries.filter(e=>e.date===today);
+    const cdeToday = todayEntries.reduce((s,e)=>s+e.cdeTon,0);
+    const normalToday = todayEntries.reduce((s,e)=>s+e.normalTon,0);
+    const cdeAll = entries.reduce((s,e)=>s+e.cdeTon,0);
+    $('heroCdeToday').textContent=fmt(cdeToday,3);
+    $('heroNormalToday').textContent=fmt(normalToday,3);
+    $('heroCdeTodaySub').textContent=todayEntries.length+' รายการวันนี้';
+    $('heroCdeAll').textContent=fmt(cdeAll,3);
+    $('heroTotalSub').textContent=entries.length+' รายการทั้งหมด';
+  }
+
+  function renderStats(){
+    const qty = entries.reduce((s,e)=>s+e.qty,0);
+    const cde = entries.reduce((s,e)=>s+e.cdeTon,0);
+    const normal = entries.reduce((s,e)=>s+e.normalTon,0);
+    $('statEntries').textContent=fmt(entries.length,0);
+    $('statQty').textContent=fmt(qty,2)+' m³';
+    $('statCde').textContent=fmt(cde,3)+' ตัน';
+    $('statNormal').textContent=fmt(normal,3)+' ตัน';
+  }
+
+  function renderLog(){
+    const q = ($('logSearch').value || '').trim().toLowerCase();
+    const tbody=$('logTableBody'); tbody.innerHTML='';
+    const list=entries.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).filter(e=>{
+      if(!q) return true;
+      return (e.date+' '+e.code+' '+e.variant).toLowerCase().includes(q);
+    });
+    $('logEmpty').style.display=list.length?'none':'block';
+
+    list.slice(0,500).forEach(e=>{
+      const tr=document.createElement('tr');
+      const label=e.variant ? e.code+' — '+e.variant : e.code;
+      tr.innerHTML='<td class="num">'+esc(e.date)+'</td>'+
+        '<td>'+esc(label)+'</td>'+
+        '<td class="num">'+fmt(e.qty,2)+'</td>'+
+        '<td class="num">'+fmt(e.cdeTon,3)+'</td>'+
+        '<td class="num">'+fmt(e.normalTon,3)+'</td>';
+      const td=document.createElement('td');
+      const b=document.createElement('button');
+      b.className='icon-btn';b.type='button';b.textContent='✕';b.title='ลบรายการ';
+      b.addEventListener('click',()=>deleteEntry(e.id));
+      td.appendChild(b);tr.appendChild(td);tbody.appendChild(tr);
+    });
+  }
+
+  function renderMixSummary(){
+    const q=($('mixSummarySearch').value||'').trim().toLowerCase();
+    const byMix={};
+    entries.forEach(e=>{
+      const key=e.mixId || e.code+'|'+e.variant;
+      if(!byMix[key]) byMix[key]={label:e.variant?e.code+' — '+e.variant:e.code,qty:0,cdeTon:0,normalTon:0};
+      byMix[key].qty+=e.qty; byMix[key].cdeTon+=e.cdeTon; byMix[key].normalTon+=e.normalTon;
+    });
+    let rows=Object.values(byMix);
+    if(q) rows=rows.filter(r=>r.label.toLowerCase().includes(q));
+    rows.sort((a,b)=>b.cdeTon-a.cdeTon);
+    const tbody=$('mixSummaryBody');tbody.innerHTML='';
+    $('mixSummaryEmpty').style.display=rows.length?'none':'block';
+    rows.forEach(r=>{
+      const total=r.cdeTon+r.normalTon;
+      const pct=total?(r.cdeTon/total*100):0;
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+esc(r.label)+'</td>'+
+        '<td class="num">'+fmt(r.qty,2)+'</td>'+
+        '<td class="num">'+fmt(r.cdeTon,3)+'</td>'+
+        '<td class="num">'+fmt(r.normalTon,3)+'</td>'+
+        '<td class="num">'+(total?fmt(pct,1)+'%':'-')+'</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderDaily(){
+    const byDate={};
+    entries.forEach(e=>{
+      if(!byDate[e.date]) byDate[e.date]={qty:0,cdeTon:0,normalTon:0};
+      byDate[e.date].qty+=e.qty;byDate[e.date].cdeTon+=e.cdeTon;byDate[e.date].normalTon+=e.normalTon;
+    });
+    const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+    const max=Math.max(0,...dates.flatMap(d=>[byDate[d].cdeTon,byDate[d].normalTon]));
+    const box=$('dailyBars');box.innerHTML='';
+    $('dailyEmpty').style.display=dates.length?'none':'block';
+    dates.slice(0,30).forEach(d=>{
+      const r=byDate[d];
+      const wrap=document.createElement('div');
+      const title=document.createElement('div');
+      title.style.cssText='display:flex;justify-content:space-between;font-size:.72rem;color:var(--ink-soft);margin-bottom:3px';
+      title.innerHTML='<span>'+esc(d)+'</span><span>'+fmt(r.qty,2)+' m³</span>';
+      wrap.appendChild(title);
+
+      const cdePct=max?(r.cdeTon/max*100):0, normPct=max?(r.normalTon/max*100):0;
+      const cde=document.createElement('div');cde.className='bar-row';
+      cde.innerHTML='<span class="bar-label num">'+fmt(r.cdeTon,3)+'</span><div class="bar-track"><div class="bar-fill cde" style="width:'+cdePct.toFixed(1)+'%"></div></div>';
+      const normal=document.createElement('div');normal.className='bar-row';
+      normal.innerHTML='<span class="bar-label num">'+fmt(r.normalTon,3)+'</span><div class="bar-track"><div class="bar-fill normal" style="width:'+normPct.toFixed(1)+'%"></div></div>';
+      wrap.appendChild(cde);wrap.appendChild(normal);box.appendChild(wrap);
+    });
+  }
+
+  function renderAll(){
+    renderMixTable(); renderMixSelect(); renderHero(); renderStats(); renderLog(); renderMixSummary(); renderDaily(); updateCalcPreview();
+  }
+
+  function browserDownload(filename,data,type){
+    const blob=new Blob([data],{type:type||'text/plain;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
+  function exportCsv(){
+    const rows=[['วันที่','รหัสมิกซ์','สัดส่วน','คิว (m³)','CDE (ตัน)','ทรายธรรมดา (ตัน)']];
+    entries.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).forEach(e=>{
+      rows.push([e.date,e.code,e.variant,e.qty.toFixed(2),e.cdeTon.toFixed(3),e.normalTon.toFixed(3)]);
+    });
+    const csv='\uFEFF'+rows.map(r=>r.map(escCsv).join(',')).join('\r\n');
+    if(downloadsApi && typeof downloadsApi.save==='function'){
+      downloadsApi.save({filename:'sand-usage-log.csv',data:csv}).catch(()=>browserDownload('sand-usage-log.csv',csv,'text/csv;charset=utf-8'));
+    }else browserDownload('sand-usage-log.csv',csv,'text/csv;charset=utf-8');
+    toast('ส่งออก CSV แล้ว');
+  }
+
+  function exportJson(){
+    const payload={
+      app:'CDE Sand Usage Control System',
+      version:2,
+      exportedAt:new Date().toISOString(),
+      mixes,
+      entries
+    };
+    const data=JSON.stringify(payload,null,2);
+    browserDownload('cde-sand-usage-backup-'+todayStr()+'.json',data,'application/json;charset=utf-8');
+    toast('สร้างไฟล์ Backup แล้ว');
+  }
+
+  async function importJson(file){
+    try{
+      const text=await file.text();
+      const data=JSON.parse(text);
+      if(!data || !Array.isArray(data.mixes) || !Array.isArray(data.entries)) throw new Error('รูปแบบ Backup ไม่ถูกต้อง');
+      mixes=data.mixes.map(normalizeMix);
+      entries=data.entries.map(normalizeEntry);
+      saveLocal();
+      renderAll();
+      toast('Restore ข้อมูลสำเร็จ');
+    }catch(err){
+      alert('ไม่สามารถ Restore ได้: '+err.message);
+    }
+  }
+
+  async function ensureSeed(){
+    /* ไม่ใส่ค่ามิกซ์สมมติ เพื่อไม่สร้างข้อมูลวิศวกรรมที่ผู้ใช้ไม่ได้กำหนด */
+    return true;
+  }
+
+  function subscribeMixes(){
+    if(!mixesCol || typeof mixesCol.onSnapshot!=='function') return;
+    mixesCol.onSnapshot(snapshot=>{
+      const list = Array.isArray(snapshot) ? snapshot : (snapshot && Array.isArray(snapshot.docs) ? snapshot.docs.map(d=>d.data ? d.data() : d) : null);
+      if(!list) return;
+      mixes=list.map(normalizeMix);saveLocal();renderAll();
+    },()=>{});
+  }
+
+  function subscribeEntries(){
+    if(!entriesCol || typeof entriesCol.onSnapshot!=='function') return;
+    entriesCol.onSnapshot(snapshot=>{
+      const list = Array.isArray(snapshot) ? snapshot : (snapshot && Array.isArray(snapshot.docs) ? snapshot.docs.map(d=>d.data ? d.data() : d) : null);
+      if(!list) return;
+      entries=list.map(normalizeEntry);saveLocal();renderAll();
+    },()=>{});
+  }
+
+  function wireEvents(){
+    $('dateInput').value=todayStr();
+    $('mixSelect').addEventListener('change',updateCalcPreview);
+    $('qtyInput').addEventListener('input',updateCalcPreview);
+    $('logSearch').addEventListener('input',renderLog);
+    $('mixSummarySearch').addEventListener('input',renderMixSummary);
+
+    $('addEntryBtn').addEventListener('click',()=>{
+      const mix=currentSelectedMix(), qty=Number($('qtyInput').value)||0;
+      if(!mix || qty<=0) return;
+      addEntry({
+        mixId:mix.id,code:mix.code,variant:mix.variant,cde:mix.cde,normal:mix.normal,
+        qty,cdeTon:mix.cde*qty*.001,normalTon:mix.normal*qty*.001,
+        date:$('dateInput').value||todayStr(),createdAt:Date.now()
+      });
+      $('qtyInput').value='';updateCalcPreview();
+    });
+
+    $('addMixBtn').addEventListener('click',()=>{
+      const m=addMix({code:'มิกซ์ใหม่',variant:'',cde:0,normal:0,note:''});
+      setTimeout(()=>{
+        const row=[...$('mixTableBody').querySelectorAll('tr')].find(tr=>tr.querySelector('.code-field')?.value===m.code);
+        const input=row?.querySelector('.code-field');if(input){input.focus();input.select()}
+      },30);
+    });
+
+    $('exportCsvBtn').addEventListener('click',exportCsv);
+    $('exportJsonBtn').addEventListener('click',exportJson);
+    $('importJsonInput').addEventListener('change',e=>{
+      const file=e.target.files?.[0];if(file) importJson(file);e.target.value='';
+    });
+
+    $('clearEntriesBtn').addEventListener('click',()=>{
+      if(!entries.length) return;
+      if(!confirm('ล้างประวัติการเบิกทั้งหมดหรือไม่?\nข้อมูลมิกซ์จะไม่ถูกลบ')) return;
+      const old=entries.slice(); entries=[]; saveLocal(); renderAll();
+      if(usingDb && entriesCol) old.forEach(e=>dbDelete(entriesCol,e.id).catch(()=>{}));
+      toast('ล้างประวัติแล้ว');
+    });
+
+    $('resetBtn').addEventListener('click',()=>{
+      if(!confirm('รีเซ็ตข้อมูลทั้งหมด?\nมิกซ์และประวัติการเบิกจะถูกลบจากเบราว์เซอร์นี้')) return;
+      mixes=[];entries=[];saveLocal();renderAll();toast('รีเซ็ตข้อมูลแล้ว');
+    });
+
+    $('refreshBtn').addEventListener('click',()=>{loadLocal();toast('รีเฟรชข้อมูลแล้ว')});
+
+    $('themeBtn').addEventListener('click',()=>{
+      const root=document.documentElement;
+      const next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+      root.setAttribute('data-theme',next);localStorage.setItem(STORAGE.theme,next);
+    });
+  }
+
+  async function init(){
+    const savedTheme=localStorage.getItem(STORAGE.theme);
+    if(savedTheme) document.documentElement.setAttribute('data-theme',savedTheme);
+    loadLocal();
+    wireEvents();
+    updateSyncBadge();
+
+    const claudeApi=window.claude;
+    if(!claudeApi || typeof claudeApi.use!=='function') return;
+
+    try{
+      const db=await claudeApi.use('db');
+      if(db){
+        usingDb=true;
+        mixesCol=db.collection('mixes');
+        entriesCol=db.collection('entries');
+        await ensureSeed();
+        subscribeMixes();
+        subscribeEntries();
+        updateSyncBadge();
+      }
+    }catch(err){ usingDb=false;updateSyncBadge(); }
+
+    try{
+      const dl=await claudeApi.use('downloads');
+      downloadsApi=dl||null;
+    }catch(err){ downloadsApi=null; }
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+</body>
+</html>
