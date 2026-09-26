@@ -1,789 +1,596 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>คำนวณการเบิกใช้ทราย CDE & ทรายธรรมดา</title>
-  <style>
-    :root{--bg:#eef1f5;--card:#fff;--soft:#f7f9fc;--text:#172033;--muted:#64748b;--line:#d8dee8;--blue:#2563eb;--gold:#d97706;--green:#15803d;--red:#b91c1c;--shadow:0 8px 24px #0f172a14}
-    .dark{--bg:#0b1220;--card:#111a2b;--soft:#172236;--text:#e5edf9;--muted:#9aa9bd;--line:#29364b;--blue:#60a5fa;--gold:#f59e0b;--green:#4ade80;--red:#f87171;--shadow:0 10px 28px #0005}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Noto Sans Thai",sans-serif}button,input,select{font:inherit}
-    .topBar{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
-    .topIn{max-width:1250px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;gap:12px;flex-wrap:wrap}
-    .navBar{background:var(--card);border-bottom:1px solid var(--line);box-shadow:0 2px 4px #00000008}
-    .navIn{max-width:1250px;margin:auto;display:flex;gap:6px;padding:8px 16px;overflow-x:auto}
-    .navTab{border:1px solid transparent;background:transparent;color:var(--muted);border-radius:8px;padding:8px 14px;font-weight:700;font-size:13px;white-space:nowrap;display:flex;align-items:center;gap:6px;cursor:pointer}
-    .navTab:hover{background:var(--soft);color:var(--text)}
-    .navTab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-    .wrap{max-width:1250px;margin:auto;padding:16px 16px 45px}
-    .hero{background:linear-gradient(135deg,#172033,#29456f);color:#fff;border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:16px}
-    .heroGrid{display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:14px;align-items:center}
-    .heroMain h1{margin:0 0 4px;font-size:22px;letter-spacing:-.3px}
-    .heroMain small{opacity:.85;font-size:13px}
-    .metric{background:#ffffff15;border:1px solid #ffffff25;border-radius:12px;padding:12px 14px}
-    .metric span{display:block;font-size:11px;opacity:.85;margin-bottom:4px}
-    .metric strong{font-size:20px;font-weight:700}
-    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
-    .c12{grid-column:span 12}.c7{grid-column:span 7}.c6{grid-column:span 6}.c5{grid-column:span 5}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
-    .head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-    .head h3{margin:0;font-size:16px;display:flex;align-items:center;gap:6px}
-    .muted{color:var(--muted);font-size:12px}
-    .formGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}
-    input,select{width:100%;border:1px solid var(--line);background:var(--soft);color:var(--text);border-radius:8px;padding:9px 12px;font-size:14px}
-    input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px #2563eb25}
-    .btn{background:var(--soft);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-    .btn:hover{filter:brightness(.96)}
-    .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
-    .btn.success{background:var(--green);color:#fff;border-color:var(--green)}
-    .btn.danger{background:var(--red);color:#fff;border-color:var(--red)}
-    .btn.sm{padding:6px 10px;font-size:12px}
-    .toolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-    .tableWrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left}
-    th{background:var(--soft);color:var(--muted);font-size:12px;font-weight:700}
-    tr:last-child td{border-bottom:none}
-    .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
-    .badge.info{background:#2563eb18;color:var(--blue)}
-    .badge.warning{background:#d9770618;color:var(--gold)}
-    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
-    .kpi{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-    .kpi span{display:block;font-size:11px;color:var(--muted)}
-    .kpi b{font-size:16px}
-    .pageSection{display:none}
-    .pageSection.active{display:block}
-    .notice{background:var(--soft);border-left:4px solid var(--blue);border-radius:6px;padding:10px 14px;font-size:12px;margin-bottom:12px}
-    .footer{margin-top:35px;text-align:center;font-size:12px;color:var(--muted)}
-    canvas{width:100%;height:320px;display:block}
-    #printPage{display:none;background:#fff;color:#000;padding:20px}
-    .printCard{border:1px solid #ccc;padding:16px;border-radius:8px;max-width:900px;margin:auto}
-    @media(max-width:900px){.heroGrid{grid-template-columns:1fr 1fr}.c7,.c6,.c5{grid-column:span 12}}
-    @media(max-width:600px){.heroGrid{grid-template-columns:1fr}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121a2b">
+<title>คำนวณการเบิกใช้ทราย CDE — Version 3</title>
+<style>
+:root{
+  --bg:#eef1f5;--card:#fff;--soft:#f7f9fc;--text:#172033;--muted:#64748b;
+  --line:#d8dee8;--blue:#2563eb;--gold:#d97706;--green:#15803d;--red:#b91c1c;
+  --shadow:0 8px 24px #0f172a14
+}
+.dark{
+  --bg:#0b1220;--card:#111a2b;--soft:#172236;--text:#e5edf9;--muted:#9aa9bd;
+  --line:#29364b;--blue:#60a5fa;--gold:#f59e0b;--green:#4ade80;--red:#f87171;
+  --shadow:0 10px 28px #0005
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Noto Sans Thai",sans-serif}
+button,input,select{font:inherit}
+button{touch-action:manipulation}
+.topBar{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+.topIn{max-width:1250px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;gap:12px;flex-wrap:wrap}
+.navBar{background:var(--card);border-bottom:1px solid var(--line);box-shadow:0 2px 4px #00000008}
+.navIn{max-width:1250px;margin:auto;display:flex;gap:6px;padding:8px 16px;overflow-x:auto}
+.navTab{border:1px solid transparent;background:transparent;color:var(--muted);border-radius:8px;padding:8px 14px;font-weight:700;font-size:13px;white-space:nowrap;display:flex;align-items:center;gap:6px;cursor:pointer}
+.navTab:hover{background:var(--soft);color:var(--text)}
+.navTab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.wrap{max-width:1250px;margin:auto;padding:16px 16px 45px}
+.hero{background:linear-gradient(135deg,#172033,#29456f);color:#fff;border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:16px}
+.heroGrid{display:grid;grid-template-columns:1.3fr repeat(3,1fr);gap:14px;align-items:center}
+.heroMain h1{margin:0 0 4px;font-size:22px;letter-spacing:-.3px}
+.heroMain small{opacity:.85;font-size:13px}
+.metric{background:#ffffff15;border:1px solid #ffffff25;border-radius:12px;padding:12px 14px}
+.metric span{display:block;font-size:11px;opacity:.85;margin-bottom:4px}
+.metric strong{font-size:20px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.c12{grid-column:span 12}.c7{grid-column:span 7}.c6{grid-column:span 6}.c5{grid-column:span 5}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.head h3{margin:0;font-size:16px;display:flex;align-items:center;gap:6px}
+.muted{color:var(--muted);font-size:12px}
+.formGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}
+input,select{width:100%;border:1px solid var(--line);background:var(--soft);color:var(--text);border-radius:8px;padding:9px 12px;font-size:14px}
+input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px #2563eb25}
+.btn{background:var(--soft);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{filter:brightness(.96)}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.success{background:var(--green);color:#fff;border-color:var(--green)}
+.btn.danger{background:var(--red);color:#fff;border-color:var(--red)}
+.btn.sm{padding:6px 10px;font-size:12px}
+.toolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tableWrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{background:var(--soft);color:var(--muted);font-size:12px;font-weight:700}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.badge.info{background:#2563eb18;color:var(--blue)}
+.badge.warning{background:#d9770618;color:var(--gold)}
+.badge.success{background:#15803d18;color:var(--green)}
+.badge.danger{background:#b91c1c18;color:var(--red)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
+.kpi{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi span{display:block;font-size:11px;color:var(--muted)}
+.kpi b{font-size:16px}
+.pageSection{display:none}
+.pageSection.active{display:block}
+.notice{background:var(--soft);border-left:4px solid var(--blue);border-radius:6px;padding:10px 14px;font-size:12px;margin-bottom:12px}
+.footer{margin-top:35px;text-align:center;font-size:12px;color:var(--muted)}
+canvas{width:100%;height:320px;display:block}
+#printPage{display:none;background:#fff;color:#000;padding:20px}
+.printCard{border:1px solid #ccc;padding:16px;border-radius:8px;max-width:900px;margin:auto}
+.modalBack{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:16px;z-index:100}
+.modalBack.show{display:flex}
+.modal{width:min(620px,100%);background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px #0008;padding:18px}
+.modal h3{margin:0}
+.modalActions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.statusBtn{min-width:72px;justify-content:center}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.center{text-align:center}
+@media(max-width:900px){.heroGrid{grid-template-columns:1fr 1fr}.c7,.c6,.c5{grid-column:span 12}}
+@media(max-width:600px){
+  .heroGrid{grid-template-columns:1fr}
+  .topIn{align-items:flex-start}
+  .card{padding:13px}
+  th,td{padding:8px 10px}
+}
+@media print{
+  body{background:#fff!important;color:#000!important}
+  body *{visibility:hidden!important}
+  #printPage,#printPage *{visibility:visible!important}
+  #printPage{display:block!important;position:absolute;inset:0}
+  #printPage .btn{display:none!important}
+}
+</style>
 </head>
 <body>
-  <header class="topBar">
-    <div class="topIn">
-      <div>
-        <b style="font-size:16px">ระบบคำนวณและควบคุมการเบิกใช้ทราย</b>
-        <div style="font-size:12px;color:var(--muted)">CDE Sand & Normal Sand Control System</div>
-      </div>
-      <div class="toolbar">
-        <button class="btn sm" id="theme">🌓 ธีม</button>
-        <button class="btn sm primary" id="openPrintBtn">🖨️ Print Out Mix</button>
-      </div>
+<header class="topBar">
+  <div class="topIn">
+    <div>
+      <b style="font-size:16px">ระบบคำนวณและควบคุมการเบิกใช้ทราย</b>
+      <div style="font-size:12px;color:var(--muted)">CDE Sand & Normal Sand Control System · Version 3</div>
     </div>
-  </header>
-
-  <nav class="navBar">
-    <div class="navIn">
-      <button class="navTab active" data-page="tab-record">➕ บันทึก / สร้าง Round</button>
-      <button class="navTab" data-page="tab-chart">📈 กราฟ & ประวัติการเบิกใช้</button>
-      <button class="navTab" data-page="tab-dashboard">📊 Dashboard</button>
-      <button class="navTab" data-page="tab-system">⚙️ จัดการระบบ</button>
+    <div class="toolbar">
+      <button class="btn sm" id="theme">🌓 ธีม</button>
+      <button class="btn sm primary" id="openPrintBtn">🖨️ Print Out Mix</button>
     </div>
-  </nav>
+  </div>
+</header>
 
-  <main class="wrap" id="main">
-    <section class="hero">
-      <div class="heroGrid">
-        <div class="heroMain">
-          <h1>CDE & Normal Sand Usage Control</h1>
-          <small>ระบบควบคุมการเบิกใช้ทราย CDE และรายงานสรุปประจำวัน</small>
+<nav class="navBar">
+  <div class="navIn">
+    <button class="navTab active" data-page="tab-record">➕ บันทึก / สร้าง Round</button>
+    <button class="navTab" data-page="tab-chart">📈 กราฟ & ประวัติการเบิกใช้</button>
+    <button class="navTab" data-page="tab-dashboard">📊 Dashboard</button>
+    <button class="navTab" data-page="tab-system">⚙️ จัดการระบบ</button>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+<section class="hero">
+  <div class="heroGrid">
+    <div class="heroMain">
+      <h1>CDE & Normal Sand Usage Control</h1>
+      <small>ระบบควบคุมการเบิกใช้ทราย CDE และรายงานสรุปประจำวัน</small>
+    </div>
+    <div class="metric"><span>CDE ประจำวันที่เลือก</span><strong id="heroCde">0.000 t</strong></div>
+    <div class="metric"><span>Normal ประจำวันที่เลือก</span><strong id="heroNorm">0.000 t</strong></div>
+    <div class="metric"><span>CDE สะสมทั้งหมด</span><strong id="heroAll">0.000 t</strong></div>
+  </div>
+</section>
+
+<div id="tab-record" class="pageSection active">
+  <div class="grid">
+    <section class="card c6">
+      <div class="head">
+        <h3>➕ บันทึกการเบิกใช้ทราย / สร้าง Round</h3>
+        <span class="muted">บันทึกยอดคอนกรีตและคำนวณน้ำหนักทราย</span>
+      </div>
+      <form id="entryForm">
+        <div class="formGrid">
+          <div><label>วันที่</label><input id="eDate" type="date" required></div>
+          <div><label>Mix Design</label><select id="eMix" required></select></div>
+          <div><label>ปริมาณคอนกรีต (m³)</label><input id="eQty" type="number" step="0.01" min="0.01" placeholder="เช่น 5.0" required></div>
         </div>
-        <div class="metric">
-          <span>CDE ประจำวันที่เลือก</span>
-          <strong id="heroCde">0.000 t</strong>
+        <div class="kpis">
+          <div class="kpi"><span>สูตร / Variant</span><b id="pVariant" style="font-size:14px">-</b></div>
+          <div class="kpi"><span>CDE ที่ต้องใช้</span><b id="pCde" style="color:var(--blue)">0.0 kg</b></div>
+          <div class="kpi"><span>Normal ที่ต้องใช้</span><b id="pNorm" style="color:var(--gold)">0.0 kg</b></div>
         </div>
-        <div class="metric">
-          <span>Normal ประจำวันที่เลือก</span>
-          <strong id="heroNorm">0.000 t</strong>
+        <div class="toolbar" style="margin-top:14px;justify-content:flex-end">
+          <button type="submit" class="btn primary">＋ บันทึกรายการนี้</button>
         </div>
-        <div class="metric">
-          <span>CDE สะสมทั้งหมด</span>
-          <strong id="heroAll">0.000 t</strong>
+      </form>
+    </section>
+
+    <section class="card c6">
+      <div class="head">
+        <div>
+          <h3>🧱 ตาราง Mix Design</h3>
+          <span class="muted">ประวัติเดิมจะคงค่า CDE/Normal ตาม ณ วันที่บันทึก</span>
         </div>
+        <div class="toolbar">
+          <button type="button" class="btn sm primary" id="addMix">＋ เพิ่ม Mix</button>
+          <button type="button" class="btn sm" id="toggleMix">ซ่อน/แสดง</button>
+        </div>
+      </div>
+      <div id="mixTable"></div>
+    </section>
+  </div>
+</div>
+
+<div id="tab-chart" class="pageSection">
+  <div class="grid">
+    <section class="card c12">
+      <div class="head">
+        <div><h3>📈 กราฟการเบิกใช้รายวัน (ทราย CDE & ทรายธรรมดา)</h3><span class="muted" id="chartRange">กำลังโหลดช่วงวันที่...</span></div>
+        <div class="toolbar">
+          <label style="margin:0;display:flex;align-items:center;gap:4px"><span class="muted">จาก:</span><input id="chartFrom" type="date" style="width:auto;padding:4px 8px;font-size:12px"></label>
+          <label style="margin:0;display:flex;align-items:center;gap:4px"><span class="muted">ถึง:</span><input id="chartTo" type="date" style="width:auto;padding:4px 8px;font-size:12px"></label>
+          <button class="btn sm" id="chartPreset7">7 วันล่าสุด</button>
+          <button class="btn sm" id="chartPreset14">14 วัน</button>
+          <button class="btn sm" id="chartPreset30">30 วัน</button>
+          <button class="btn sm" id="chartReset">ทั้งหมด</button>
+        </div>
+      </div>
+      <div style="background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px"><canvas id="chart"></canvas></div>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <span>* กราฟเปรียบเทียบยอดเบิกใช้ทราย CDE และทรายธรรมดารายวัน</span>
+        <button class="btn sm success" id="chartExportCsv">📥 ส่งออก CSV ข้อมูลกราฟ</button>
       </div>
     </section>
 
-    <!-- TAB 1: บันทึกการเบิกใช้ / สร้าง Round -->
-    <div id="tab-record" class="pageSection active">
-      <div class="grid">
-        <section class="card c6">
-          <div class="head">
-            <h3>➕ บันทึกการเบิกใช้ทราย / สร้าง Round</h3>
-            <span class="muted">บันทึกยอดคอนกรีตและคำนวณน้ำหนักทราย</span>
-          </div>
-          <form id="entryForm">
-            <div class="formGrid">
-              <div>
-                <label>วันที่</label>
-                <input id="eDate" type="date" required>
-              </div>
-              <div>
-                <label>Mix Design</label>
-                <select id="eMix" required></select>
-              </div>
-              <div>
-                <label>ปริมาณคอนกรีต (m³)</label>
-                <input id="eQty" type="number" step="0.01" min="0.01" placeholder="เช่น 5.0" required>
-              </div>
-            </div>
-
-            <div class="kpis">
-              <div class="kpi">
-                <span>สูตร / Variant</span>
-                <b id="pVariant" style="font-size:14px">-</b>
-              </div>
-              <div class="kpi">
-                <span>CDE ที่ต้องใช้</span>
-                <b id="pCde" style="color:var(--blue)">0.0 kg</b>
-              </div>
-              <div class="kpi">
-                <span>Normal ที่ต้องใช้</span>
-                <b id="pNorm" style="color:var(--gold)">0.0 kg</b>
-              </div>
-            </div>
-
-            <div class="toolbar" style="margin-top:14px;justify-content:flex-end">
-              <button type="submit" class="btn primary">＋ บันทึกรายการนี้</button>
-            </div>
-          </form>
-        </section>
-
-        <section class="card c6">
-          <div class="head">
-            <div>
-              <h3>🧱 ตาราง Mix Design</h3>
-              <span class="muted">ประวัติเดิมจะคงค่า CDE/Normal ตาม ณ วันที่บันทึก</span>
-            </div>
-            <div class="toolbar">
-              <button class="btn sm primary" id="addMix">＋ เพิ่ม Mix</button>
-              <button class="btn sm" id="toggleMix">ซ่อน/แสดง</button>
-            </div>
-          </div>
-          <div id="mixTable"></div>
-        </section>
-      </div>
-    </div>
-
-    <!-- TAB 2: กราฟการเบิกใช้รายวัน & ประวัติการเบิกใช้ทั้งหมด -->
-    <div id="tab-chart" class="pageSection">
-      <div class="grid">
-        <!-- การ์ดบน: กราฟเปรียบเทียบรายวัน -->
-        <section class="card c12">
-          <div class="head">
-            <div>
-              <h3>📈 กราฟการเบิกใช้รายวัน (ทราย CDE & ทรายธรรมดา)</h3>
-              <span class="muted" id="chartRange">กำลังโหลดช่วงวันที่...</span>
-            </div>
-            <div class="toolbar">
-              <label style="margin:0;display:flex;align-items:center;gap:4px">
-                <span class="muted">จาก:</span>
-                <input id="chartFrom" type="date" style="width:auto;padding:4px 8px;font-size:12px">
-              </label>
-              <label style="margin:0;display:flex;align-items:center;gap:4px">
-                <span class="muted">ถึง:</span>
-                <input id="chartTo" type="date" style="width:auto;padding:4px 8px;font-size:12px">
-              </label>
-              <button class="btn sm" id="chartPreset7">7 วันล่าสุด</button>
-              <button class="btn sm" id="chartPreset14">14 วัน</button>
-              <button class="btn sm" id="chartPreset30">30 วัน</button>
-              <button class="btn sm" id="chartReset">ทั้งหมด</button>
-            </div>
-          </div>
-          <div style="background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px">
-            <canvas id="chart"></canvas>
-          </div>
-          <div style="margin-top:10px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-            <span>* กราฟเปรียบเทียบยอดเบิกใช้ทราย CDE (สีน้ำเงิน) และทรายธรรมดา (สีทอง/ส้ม) รายวัน</span>
-            <button class="btn sm success" id="chartExportCsv">📥 ส่งออก CSV ข้อมูลกราฟ (CDE & ธรรมดา)</button>
-          </div>
-        </section>
-
-        <!-- การ์ดล่าง: ประวัติการเบิกใช้ทั้งหมดในระบบ -->
-        <section class="card c12">
-          <div class="head">
-            <div>
-              <h3>🧾 ประวัติการเบิกใช้ทั้งหมดในระบบ</h3>
-              <span class="muted">รายการบันทึกการเบิกใช้คอนกรีต, ทราย CDE และทรายธรรมดาทั้งหมดที่เก็บใน LocalStorage</span>
-            </div>
-            <div class="toolbar">
-              <input id="historySearchTab" placeholder="ค้นหา วันที่ / Mix / Variant" style="max-width:220px;padding:6px 10px;font-size:12px">
-              <button class="btn success sm" id="historyTabCsv">📥 ส่งออกประวัติทั้งหมด (CSV)</button>
-            </div>
-          </div>
-
-          <div class="kpis" style="margin-bottom:14px">
-            <div class="kpi">
-              <span>รายการเบิกใช้ทั้งหมด</span>
-              <b id="histTotalCount">0 รายการ</b>
-            </div>
-            <div class="kpi">
-              <span>คอนกรีตรวมสะสม</span>
-              <b id="histTotalQty">0.00 m³</b>
-            </div>
-            <div class="kpi">
-              <span>ทราย CDE รวมสะสม</span>
-              <b id="histTotalCde" style="color:var(--blue)">0.000 t</b>
-            </div>
-            <div class="kpi">
-              <span>ทรายธรรมดารวมสะสม</span>
-              <b id="histTotalNorm" style="color:var(--gold)">0.000 t</b>
-            </div>
-          </div>
-
-          <div class="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:110px">วันที่</th>
-                  <th>Mix Design</th>
-                  <th>Variant / สูตร</th>
-                  <th style="text-align:right">คอนกรีต (m³)</th>
-                  <th style="text-align:right">ทราย CDE (kg)</th>
-                  <th style="text-align:right">ทราย CDE (ตัน)</th>
-                  <th style="text-align:right">ทรายธรรมดา (kg)</th>
-                  <th style="text-align:right">ทรายธรรมดา (ตัน)</th>
-                  <th style="text-align:right">รวมทราย (ตัน)</th>
-                  <th style="text-align:center;width:70px">จัดการ</th>
-                </tr>
-              </thead>
-              <tbody id="fullHistoryTable"></tbody>
-            </table>
-          </div>
-
-          <div class="toolbar" style="margin-top:14px;display:flex;justify-content:space-between">
-            <span class="muted" id="histResultCount">แสดง 0 รายการ</span>
-            <button class="btn danger sm" id="clearHistoryTab">ล้างประวัติทั้งหมด</button>
-          </div>
-        </section>
-      </div>
-    </div>
-
-    <!-- TAB 3: Dashboard (แสดงผลแยกรายวัน) -->
-    <div id="tab-dashboard" class="pageSection">
-      <div class="grid">
-        <section class="card c12">
-          <div class="head">
-            <div>
-              <h3>📊 Dashboard การเบิกใช้ประจำวัน</h3>
-              <span class="muted">สรุปผลเป็นรายวันเฉพาะวันที่เลือก ไม่รวมปนกัน</span>
-            </div>
-            <div class="toolbar">
-              <label style="margin:0;display:flex;align-items:center;gap:6px">
-                <b>เลือกวันที่:</b>
-                <input id="dashDate" type="date" style="width:auto;padding:6px 10px;font-weight:700">
-              </label>
-              <button class="btn sm primary" id="dashToday">วันนี้</button>
-              <button class="btn sm success" id="dashExportCsv">📥 ส่งออก Dashboard เป็น CSV</button>
-            </div>
-          </div>
-
-          <div class="kpis">
-            <div class="kpi">
-              <span>รายการเบิกในวันนี้</span>
-              <b id="dEntries">0 รายการ</b>
-            </div>
-            <div class="kpi">
-              <span>คอนกรีตรวมวันนี้</span>
-              <b id="dQty">0.00 m³</b>
-            </div>
-            <div class="kpi">
-              <span>CDE รวมวันนี้</span>
-              <b id="dCde" style="color:var(--blue)">0.000 t</b>
-            </div>
-            <div class="kpi">
-              <span>Normal รวมวันนี้</span>
-              <b id="dNorm" style="color:var(--gold)">0.000 t</b>
-            </div>
-          </div>
-
-          <div style="margin-top:16px">
-            <div class="head">
-              <b style="font-size:14px">รายการเบิกใช้ในวันที่เลือก</b>
-              <span class="muted" id="dashListCount">0 รายการ</span>
-            </div>
-            <div class="tableWrap">
-              <table>
-                <thead>
-                  <tr><th>วันที่</th><th>Mix Design</th><th>สูตร</th><th>คอนกรีต (m³)</th><th>CDE (ตัน)</th><th>Normal (ตัน)</th><th></th></tr>
-                </thead>
-                <tbody id="dayHistory"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-
-    <!-- TAB 4: จัดการระบบ -->
-    <div id="tab-system" class="pageSection">
-      <div class="grid">
-        <section class="card c12">
-          <h3>⚙️ จัดการระบบ & สำรองข้อมูล</h3>
-          <div class="notice">
-            ข้อมูลระบบถูกเก็บรักษาใน LocalStorage ของอุปกรณ์นี้อย่างปลอดภัย สามารถสำรองไฟล์ JSON หรือส่งออก CSV ได้ตลอดเวลา
-          </div>
-
-          <div class="head">
-            <div>
-              <b>สำรองข้อมูล (Backup / Restore)</b>
-              <span class="muted">บันทึกเป็นไฟล์ JSON เก็บไว้ หรือนำข้อมูลกลับเข้ามาในเครื่อง</span>
-            </div>
-            <div class="toolbar">
-              <button class="btn sm" id="backup">💾 Backup ข้อมูล (JSON)</button>
-              <button class="btn sm" id="restore">📂 Restore ข้อมูล (JSON)</button>
-              <input id="file" type="file" accept=".json,application/json" hidden>
-            </div>
-          </div>
-
-          <div class="toolbar" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
-            <button class="btn" id="refresh">↻ Refresh หน้าจอ</button>
-            <button class="btn danger sm" id="reset">รีเซ็ตระบบค่าเริ่มต้น</button>
-          </div>
-        </section>
-      </div>
-    </div>
-
-    <div class="footer">CDE & Normal Sand Usage Control System · LocalStorage Active</div>
-  </main>
-
-  <!-- PRINT OUT MIX SECTION -->
-  <section id="printPage">
-    <div class="printCard">
+    <section class="card c12">
       <div class="head">
-        <div>
-          <h2 style="margin:0">CDE SAND — PRINT OUT MIX</h2>
-          <span class="muted">รายงานคำนวณและตรวจสอบยอดทราย</span>
-        </div>
+        <div><h3>🧾 ประวัติการเบิกใช้ทั้งหมดในระบบ</h3><span class="muted">รายการทั้งหมดที่เก็บใน LocalStorage</span></div>
         <div class="toolbar">
-          <button class="btn sm" id="printBtn">🖨️ พิมพ์หน้านี้</button>
-          <button class="btn sm primary" id="closePrintBtn">กลับหน้าหลัก</button>
+          <input id="historySearchTab" placeholder="ค้นหา วันที่ / Mix / Variant" style="max-width:220px;padding:6px 10px;font-size:12px">
+          <button class="btn success sm" id="historyTabCsv">📥 ส่งออกประวัติทั้งหมด (CSV)</button>
         </div>
       </div>
-      <div class="grid" style="margin-top:12px">
-        <div class="card c6">
-          <h4>ยอดทรายในสต็อกเริ่มต้น (kg)</h4>
-          <label>ทราย CDE</label><input id="aCde" type="number" step="0.1" value="0">
-          <label style="margin-top:6px">ทรายปกติ (Normal)</label><input id="aNorm" type="number" step="0.1" value="0">
-        </div>
-        <div class="card c6">
-          <h4>ยอดเบิกจ่ายจริง / รถรับ (kg)</h4>
-          <label>ทราย CDE รวมที่เบิก</label><div id="bCde" style="font-weight:700;padding:6px 0">-</div>
-          <label>ทรายปกติรวมที่เบิก</label><div id="bNorm" style="font-weight:700;padding:6px 0">-</div>
-        </div>
+      <div class="kpis" style="margin-bottom:14px">
+        <div class="kpi"><span>รายการเบิกใช้ทั้งหมด</span><b id="histTotalCount">0 รายการ</b></div>
+        <div class="kpi"><span>คอนกรีตรวมสะสม</span><b id="histTotalQty">0.00 m³</b></div>
+        <div class="kpi"><span>ทราย CDE รวมสะสม</span><b id="histTotalCde" style="color:var(--blue)">0.000 t</b></div>
+        <div class="kpi"><span>ทรายธรรมดารวมสะสม</span><b id="histTotalNorm" style="color:var(--gold)">0.000 t</b></div>
+      </div>
+      <div class="tableWrap">
+        <table><thead><tr>
+          <th>วันที่</th><th>Mix Design</th><th>Variant / สูตร</th><th style="text-align:right">คอนกรีต (m³)</th>
+          <th style="text-align:right">ทราย CDE (kg)</th><th style="text-align:right">ทราย CDE (ตัน)</th>
+          <th style="text-align:right">ทรายธรรมดา (kg)</th><th style="text-align:right">ทรายธรรมดา (ตัน)</th>
+          <th style="text-align:right">รวมทราย (ตัน)</th><th>จัดการ</th>
+        </tr></thead><tbody id="fullHistoryTable"></tbody></table>
+      </div>
+      <div class="toolbar" style="margin-top:14px;justify-content:space-between">
+        <span class="muted" id="histResultCount">แสดง 0 รายการ</span>
+        <button class="btn danger sm" id="clearHistoryTab">ล้างประวัติทั้งหมด</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="tab-dashboard" class="pageSection">
+<section class="card c12">
+  <div class="head">
+    <div><h3>📊 Dashboard การเบิกใช้ประจำวัน</h3><span class="muted">สรุปผลเฉพาะวันที่เลือก</span></div>
+    <div class="toolbar">
+      <label style="margin:0;display:flex;align-items:center;gap:6px"><b>เลือกวันที่:</b><input id="dashDate" type="date" style="width:auto;padding:6px 10px;font-weight:700"></label>
+      <button class="btn sm primary" id="dashToday">วันนี้</button>
+      <button class="btn sm success" id="dashExportCsv">📥 ส่งออก Dashboard เป็น CSV</button>
+    </div>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><span>รายการเบิกในวันนี้</span><b id="dEntries">0 รายการ</b></div>
+    <div class="kpi"><span>คอนกรีตรวมวันนี้</span><b id="dQty">0.00 m³</b></div>
+    <div class="kpi"><span>CDE รวมวันนี้</span><b id="dCde" style="color:var(--blue)">0.000 t</b></div>
+    <div class="kpi"><span>Normal รวมวันนี้</span><b id="dNorm" style="color:var(--gold)">0.000 t</b></div>
+  </div>
+  <div style="margin-top:16px">
+    <div class="head"><b style="font-size:14px">รายการเบิกใช้ในวันที่เลือก</b><span class="muted" id="dashListCount">0 รายการ</span></div>
+    <div class="tableWrap"><table><thead><tr><th>วันที่</th><th>Mix Design</th><th>สูตร</th><th>คอนกรีต (m³)</th><th>CDE (ตัน)</th><th>Normal (ตัน)</th><th></th></tr></thead><tbody id="dayHistory"></tbody></table></div>
+  </div>
+</section>
+</div>
+
+<div id="tab-system" class="pageSection">
+<section class="card c12">
+  <h3>⚙️ จัดการระบบ & สำรองข้อมูล</h3>
+  <div class="notice">ข้อมูลระบบเก็บใน LocalStorage ของอุปกรณ์นี้ สามารถ Backup / Restore ได้</div>
+  <div class="head">
+    <div><b>สำรองข้อมูล (Backup / Restore)</b><span class="muted">บันทึก JSON หรือนำข้อมูลกลับเข้าเครื่อง</span></div>
+    <div class="toolbar">
+      <button class="btn sm" id="backup">💾 Backup ข้อมูล (JSON)</button>
+      <button class="btn sm" id="restore">📂 Restore ข้อมูล (JSON)</button>
+      <input id="file" type="file" accept=".json,application/json" hidden>
+    </div>
+  </div>
+  <div class="toolbar" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+    <button class="btn" id="refresh">↻ Refresh หน้าจอ</button>
+    <button class="btn danger sm" id="reset">รีเซ็ตระบบค่าเริ่มต้น</button>
+  </div>
+</section>
+</div>
+<div class="footer">CDE & Normal Sand Usage Control System · LocalStorage Active</div>
+</main>
+
+<section id="printPage">
+  <div class="printCard">
+    <div class="head">
+      <div><h2 style="margin:0">CDE SAND — PRINT OUT MIX</h2><span class="muted">รายงานคำนวณและตรวจสอบยอดทราย</span></div>
+      <div class="toolbar"><button class="btn sm" id="printBtn">🖨️ พิมพ์หน้านี้</button><button class="btn sm primary" id="closePrintBtn">กลับหน้าหลัก</button></div>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div class="card c6"><h4>ยอดทรายในสต็อกเริ่มต้น (kg)</h4>
+        <label>ทราย CDE</label><input id="aCde" type="number" step="0.1" value="0">
+        <label style="margin-top:6px">ทรายปกติ (Normal)</label><input id="aNorm" type="number" step="0.1" value="0">
+      </div>
+      <div class="card c6"><h4>ยอดเบิกจ่ายจริง / รถรับ (kg)</h4>
+        <label>ทราย CDE รวมที่เบิก</label><div id="bCde" style="font-weight:700;padding:6px 0">-</div>
+        <label>ทรายปกติรวมที่เบิก</label><div id="bNorm" style="font-weight:700;padding:6px 0">-</div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <script>
-    const K_MIX="cde-sand-usage-mixes-v8", K_ENTRIES="cde-sand-usage-entries-v8", K_THEME="cde-sand-theme-v8", K_PRINT="cde-sand-print-v9";
-    const defaults=[
-      {id:"m1",code:"CDE-MIX-01",name:"Standard CDE 240",variant:"STANDARD",cde:120,normal:680,note:"ใช้งานทั่วไป"},
-      {id:"m2",code:"CDE-MIX-02",name:"High CDE 280",variant:"SPECIAL",cde:220,normal:560,note:"งานโครงสร้างพิเศษ"},
-      {id:"m3",code:"CDE-MIX-03",name:"Pure Normal 240",variant:"STANDARD",cde:0,normal:800,note:"ทรายปกติล้วน"}
-    ];
+<!-- ADD MIX MODAL -->
+<div class="modalBack" id="mixModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mixModalTitle">
+    <div class="head">
+      <div>
+        <h3 id="mixModalTitle">🧱 เพิ่ม Mix Design</h3>
+        <div class="muted">กรอกข้อมูล Mix ใหม่ แล้วกดบันทึก</div>
+      </div>
+      <button type="button" class="btn sm" id="closeMixModal">✕ ปิด</button>
+    </div>
+    <form id="mixForm">
+      <div class="formGrid">
+        <div><label>Code *</label><input id="mCode" required placeholder="เช่น 626254C"></div>
+        <div><label>Variant / สูตร *</label><input id="mVariant" required placeholder="เช่น 50%"></div>
+        <div><label>CDE kg/m³ *</label><input id="mCde" type="number" step="0.1" min="0" required placeholder="เช่น 400"></div>
+        <div><label>Normal kg/m³ *</label><input id="mNormal" type="number" step="0.1" min="0" required placeholder="เช่น 400"></div>
+        <div style="grid-column:1/-1"><label>หมายเหตุ</label><input id="mNote" placeholder="รายละเอียดหรือชื่อ Mix"></div>
+      </div>
+      <div class="modalActions">
+        <button type="button" class="btn" id="cancelMix">ยกเลิก</button>
+        <button type="submit" class="btn primary">💾 บันทึก Mix</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-    let mixes=[], entries=[], ps={}, hidden=false;
-    const $=id=>document.getElementById(id);
-    const num=v=>parseFloat(v)||0;
-    const fmt=(v,d=2)=>(Number(v)||0).toLocaleString("th-TH",{minimumFractionDigits:d,maximumFractionDigits:d});
-    const today=()=>new Date().toISOString().slice(0,10);
-    const esc=s=>String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+<script>
+const K_MIX="cde-sand-usage-mixes-v9",K_ENTRIES="cde-sand-usage-entries-v9",K_THEME="cde-sand-theme-v9",K_PRINT="cde-sand-print-v9";
+const defaults=[
+ {id:"m1",code:"241AE011",name:"ตัวอย่าง Mix C1",variant:"50%",cde:403,normal:402,note:"ตัวอย่าง Mix C1",active:true},
+ {id:"m2",code:"626254C",name:"ตัวอย่าง Mix C2",variant:"50%",cde:388,normal:387,note:"ตัวอย่าง Mix C2",active:true},
+ {id:"m3",code:"330020K",name:"ตัวอย่าง Mix C3",variant:"50%",cde:500,normal:300,note:"ตัวอย่าง Mix C3",active:true}
+];
 
-    function save(){
-      localStorage.setItem(K_MIX, JSON.stringify(mixes));
-      localStorage.setItem(K_ENTRIES, JSON.stringify(entries));
-      localStorage.setItem(K_THEME, document.body.classList.contains("dark")?"dark":"light");
-      localStorage.setItem(K_PRINT, JSON.stringify(ps));
-    }
+let mixes=[],entries=[],ps={},hidden=false;
+const $=id=>document.getElementById(id);
+const num=v=>parseFloat(v)||0;
+const fmt=(v,d=2)=>(Number(v)||0).toLocaleString("th-TH",{minimumFractionDigits:d,maximumFractionDigits:d});
+const today=()=>new Date().toISOString().slice(0,10);
+const esc=s=>String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 
-    function load(){
-      try{
-        mixes=JSON.parse(localStorage.getItem(K_MIX))||defaults;
-        entries=JSON.parse(localStorage.getItem(K_ENTRIES))||[];
-        ps=JSON.parse(localStorage.getItem(K_PRINT))||{};
-        if(localStorage.getItem(K_THEME)==="dark")document.body.classList.add("dark");
-      }catch(e){mixes=defaults;entries=[];ps={};}
-    }
+function save(){
+ localStorage.setItem(K_MIX,JSON.stringify(mixes));
+ localStorage.setItem(K_ENTRIES,JSON.stringify(entries));
+ localStorage.setItem(K_THEME,document.body.classList.contains("dark")?"dark":"light");
+ localStorage.setItem(K_PRINT,JSON.stringify(ps));
+}
+function load(){
+ try{
+  const oldMix=JSON.parse(localStorage.getItem("cde-sand-usage-mixes-v8")||"null");
+  const oldEntries=JSON.parse(localStorage.getItem("cde-sand-usage-entries-v8")||"null");
+  mixes=JSON.parse(localStorage.getItem(K_MIX))||oldMix||defaults;
+  entries=JSON.parse(localStorage.getItem(K_ENTRIES))||oldEntries||[];
+  ps=JSON.parse(localStorage.getItem(K_PRINT))||{};
+  mixes=mixes.map(m=>({...m,active:m.active!==false}));
+  if(localStorage.getItem(K_THEME)==="dark")document.body.classList.add("dark");
+ }catch(e){mixes=defaults;entries=[];ps={}}
+}
+function uid(prefix="m"){
+ return prefix+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,9);
+}
+function activeMixes(){return mixes.filter(m=>m.active!==false)}
 
-    // Tab Navigation Switching
-    document.querySelectorAll(".navTab").forEach(tab=>{
-      tab.onclick=()=>{
-        document.querySelectorAll(".navTab").forEach(t=>t.classList.remove("active"));
-        document.querySelectorAll(".pageSection").forEach(p=>p.classList.remove("active"));
-        tab.classList.add("active");
-        const target=tab.dataset.page;
-        if($(target)) $(target).classList.add("active");
-        if(target==="tab-chart"){setTimeout(renderChart,50);renderFullHistory()}
-        if(target==="tab-dashboard"){renderDashboard()}
-      };
-    });
+document.querySelectorAll(".navTab").forEach(tab=>{
+ tab.onclick=()=>{
+  document.querySelectorAll(".navTab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".pageSection").forEach(p=>p.classList.remove("active"));
+  tab.classList.add("active");
+  const target=tab.dataset.page;
+  if($(target))$(target).classList.add("active");
+  if(target==="tab-chart"){setTimeout(renderChart,50);renderFullHistory()}
+  if(target==="tab-dashboard")renderDashboard();
+ };
+});
 
-    function options(){
-      let s=$("eMix"),v=s.value;
-      s.innerHTML=mixes.map(m=>`<option value="${m.id}">${esc(m.code)} — ${esc(m.name)}</option>`).join("");
-      if(mixes.some(m=>m.id===v)) s.value=v;
-    }
+function options(){
+ const s=$("eMix"),v=s.value;
+ const list=activeMixes();
+ s.innerHTML=list.map(m=>`<option value="${esc(m.id)}">${esc(m.code)} — ${esc(m.name||m.note||m.variant)}</option>`).join("");
+ if(list.some(m=>m.id===v))s.value=v;
+ else if(list[0])s.value=list[0].id;
+}
+function renderMixTable(){
+ if(hidden){$("mixTable").innerHTML="";return}
+ const list=mixes;
+ if(!list.length){$("mixTable").innerHTML='<div class="empty">ยังไม่มี Mix Design กรุณากด ＋ เพิ่ม Mix</div>';return}
+ $("mixTable").innerHTML=`<div class="tableWrap"><table>
+ <thead><tr>
+ <th>Code</th><th>Variant</th><th style="text-align:right">CDE kg/m³</th><th style="text-align:right">Normal kg/m³</th>
+ <th>หมายเหตุ</th><th style="text-align:center">Status</th><th style="text-align:center">จัดการ</th>
+ </tr></thead><tbody>
+ ${list.map(m=>`<tr>
+ <td><input data-field="code" data-id="${esc(m.id)}" value="${esc(m.code)}" style="min-width:150px"></td>
+ <td><input data-field="variant" data-id="${esc(m.id)}" value="${esc(m.variant||"")}" style="min-width:100px"></td>
+ <td><input data-field="cde" data-id="${esc(m.id)}" type="number" step="0.1" min="0" value="${num(m.cde)}" style="min-width:120px;text-align:right"></td>
+ <td><input data-field="normal" data-id="${esc(m.id)}" type="number" step="0.1" min="0" value="${num(m.normal)}" style="min-width:120px;text-align:right"></td>
+ <td><input data-field="note" data-id="${esc(m.id)}" value="${esc(m.note||m.name||"")}" style="min-width:180px"></td>
+ <td style="text-align:center">
+   <button type="button" class="btn sm statusBtn ${m.active!==false?"success":"danger"}" data-status="${esc(m.id)}">${m.active!==false?"ใช้งาน":"ปิดใช้"}</button>
+ </td>
+ <td style="text-align:center"><button type="button" class="btn danger sm" data-del="${esc(m.id)}">ลบ</button></td>
+ </tr>`).join("")}
+ </tbody></table></div>`;
 
-    function renderMixTable(){
-      if(hidden){$("mixTable").innerHTML="";return}
-      $("mixTable").innerHTML=`<div class="tableWrap"><table>
-        <thead><tr><th>Code</th><th>ชื่อ</th><th>สูตร</th><th>CDE kg</th><th>Normal kg</th><th></th></tr></thead>
-        <tbody>`+mixes.map(m=>`<tr>
-          <td><b>${esc(m.code)}</b></td>
-          <td>${esc(m.name)}</td>
-          <td><span class="badge ${m.variant==='SPECIAL'?'warning':'info'}">${esc(m.variant||'STANDARD')}</span></td>
-          <td>${fmt(m.cde,1)}</td>
-          <td>${fmt(m.normal,1)}</td>
-          <td><button class="btn danger sm" data-del="${m.id}">ลบ</button></td>
-        </tr>`).join("")+`</tbody></table></div>`;
-      $("mixTable").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
-        if(confirm("ลบ Mix นี้หรือไม่? (ประวัติเดิมจะไม่ถูกลบ)")){
-          mixes=mixes.filter(x=>x.id!==b.dataset.del);
-          save();renderAll();
-        }
-      });
-    }
+ $("mixTable").querySelectorAll("[data-field]").forEach(inp=>{
+  inp.addEventListener("change",()=>{
+   const m=mixes.find(x=>x.id===inp.dataset.id);if(!m)return;
+   const f=inp.dataset.field;
+   if(f==="cde"||f==="normal")m[f]=Math.max(0,num(inp.value));
+   else m[f]=inp.value.trim();
+   if(f==="note")m.name=m.note||m.code;
+   save();options();preview();renderMixTable();
+  });
+ });
+ $("mixTable").querySelectorAll("[data-status]").forEach(b=>b.onclick=()=>{
+  const m=mixes.find(x=>x.id===b.dataset.status);if(!m)return;
+  m.active=m.active===false;
+  save();renderAll();
+ });
+ $("mixTable").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+  const m=mixes.find(x=>x.id===b.dataset.del);
+  if(!m)return;
+  if(confirm(`ลบ Mix ${m.code} หรือไม่?\nประวัติการเบิกใช้เดิมจะไม่ถูกลบ`)){
+   mixes=mixes.filter(x=>x.id!==m.id);
+   save();renderAll();
+  }
+ });
+}
+function preview(){
+ const m=mixes.find(x=>x.id===$("eMix").value)||activeMixes()[0];
+ const q=num($("eQty").value);
+ if(!m){$("pVariant").textContent="-";$("pCde").textContent="0.0 kg";$("pNorm").textContent="0.0 kg";return}
+ $("pVariant").textContent=m.variant||"-";
+ $("pCde").textContent=fmt(m.cde*q,1)+" kg ("+fmt(m.cde*q/1000,3)+" t)";
+ $("pNorm").textContent=fmt(m.normal*q,1)+" kg ("+fmt(m.normal*q/1000,3)+" t)";
+}
+$("entryForm").onsubmit=e=>{
+ e.preventDefault();
+ const m=mixes.find(x=>x.id===$("eMix").value);
+ if(!m||m.active===false)return alert("กรุณาเลือก Mix ที่ใช้งานอยู่");
+ const q=num($("eQty").value);if(q<=0)return;
+ const cdeKg=m.cde*q,normKg=m.normal*q;
+ entries.push({
+  id:uid("e"),date:$("eDate").value,createdAt:new Date().toISOString(),mixId:m.id,
+  mixCode:m.code,mixName:m.name||m.note||"",mixVariant:m.variant||"STANDARD",qty:q,
+  cdeKg,cdeTon:cdeKg/1000,normalKg:normKg,normalTon:normKg/1000
+ });
+ save();renderAll();$("eQty").value="";preview();alert("บันทึกรายการสำเร็จ!");
+};
 
-    function preview(){
-      let m=mixes.find(x=>x.id===$("eMix").value)||mixes[0];
-      let q=num($("eQty").value);
-      if(!m){$("pVariant").textContent="-";$("pCde").textContent="0.0 kg";$("pNorm").textContent="0.0 kg";return}
-      $("pVariant").textContent=m.variant||"STANDARD";
-      $("pCde").textContent=fmt(m.cde*q,1)+" kg ("+fmt((m.cde*q)/1000,3)+" t)";
-      $("pNorm").textContent=fmt(m.normal*q,1)+" kg ("+fmt((m.normal*q)/1000,3)+" t)";
-    }
+function renderHeroStats(){
+ const dSel=$("dashDate").value||today(),day=entries.filter(e=>e.date===dSel);
+ $("heroCde").textContent=fmt(day.reduce((s,e)=>s+num(e.cdeTon),0),3)+" t";
+ $("heroNorm").textContent=fmt(day.reduce((s,e)=>s+num(e.normalTon),0),3)+" t";
+ $("heroAll").textContent=fmt(entries.reduce((s,e)=>s+num(e.cdeTon),0),3)+" t";
+}
+function renderDashboard(){
+ const dSel=$("dashDate").value||today(),list=entries.filter(e=>e.date===dSel);
+ $("dEntries").textContent=list.length+" รายการ";
+ $("dQty").textContent=fmt(list.reduce((s,e)=>s+num(e.qty),0),2)+" m³";
+ $("dCde").textContent=fmt(list.reduce((s,e)=>s+num(e.cdeTon),0),3)+" t";
+ $("dNorm").textContent=fmt(list.reduce((s,e)=>s+num(e.normalTon),0),3)+" t";
+ $("dashListCount").textContent=list.length+" รายการ";
+ $("dayHistory").innerHTML=list.length?list.map(e=>`<tr>
+ <td>${esc(e.date)}</td><td><b>${esc(e.mixCode)}</b></td>
+ <td><span class="badge info">${esc(e.mixVariant||"STANDARD")}</span></td>
+ <td>${fmt(e.qty)}</td><td style="color:var(--blue);font-weight:700">${fmt(e.cdeTon,3)}</td>
+ <td style="color:var(--gold);font-weight:700">${fmt(e.normalTon,3)}</td>
+ <td><button type="button" class="btn danger sm" data-del="${esc(e.id)}">ลบ</button></td></tr>`).join("")
+ :'<tr><td colspan="7" class="empty">ไม่มีรายการในวันนี้</td></tr>';
+ $("dayHistory").querySelectorAll("[data-del]").forEach(b=>b.onclick=deleteEntry);
+ renderHeroStats();
+}
+function deleteEntry(){
+ const id=this.dataset.del;
+ if(confirm("ลบรายการนี้หรือไม่?")){entries=entries.filter(e=>e.id!==id);save();renderAll()}
+}
 
-    $("entryForm").onsubmit=e=>{
-      e.preventDefault();
-      let m=mixes.find(x=>x.id===$("eMix").value);
-      if(!m)return;
-      let q=num($("eQty").value);
-      let cdeKg=m.cde*q, normKg=m.normal*q;
-      entries.push({
-        id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-        date:$("eDate").value,
-        createdAt:new Date().toISOString(),
-        mixId:m.id,
-        mixCode:m.code,
-        mixName:m.name,
-        mixVariant:m.variant||"STANDARD",
-        qty:q,
-        cdeKg:cdeKg,
-        cdeTon:cdeKg/1000,
-        normalKg:normKg,
-        normalTon:normKg/1000
-      });
-      save();renderAll();
-      $("eQty").value="";preview();
-      alert("บันทึกรายการสำเร็จ!");
-    };
+function renderChart(){
+ const c=$("chart");if(!c)return;
+ const r=c.getBoundingClientRect(),dpr=devicePixelRatio||1,w=Math.max(320,r.width),h=320;
+ c.width=w*dpr;c.height=h*dpr;const x=c.getContext("2d");x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
+ const g={};
+ entries.forEach(e=>{g[e.date]??={c:0,n:0};g[e.date].c+=num(e.cdeTon);g[e.date].n+=num(e.normalTon)});
+ let dates=Object.keys(g).sort(),f=$("chartFrom").value,t=$("chartTo").value;
+ if(f)dates=dates.filter(d=>d>=f);if(t)dates=dates.filter(d=>d<=t);
+ if(!f&&!t&&dates.length>14)dates=dates.slice(-14);
+ $("chartRange").textContent=dates.length?dates[0]+" ถึง "+dates.at(-1):"ยังไม่มีข้อมูลตามช่วงวันที่เลือก";
+ if(!dates.length){x.fillStyle="#888";x.font="14px sans-serif";x.fillText("ไม่มีข้อมูลการเบิกใช้ทรายในช่วงนี้",w/2-100,h/2);return}
+ const cs=getComputedStyle(document.body),line=cs.getPropertyValue("--line").trim(),mut=cs.getPropertyValue("--muted").trim(),blue=cs.getPropertyValue("--blue").trim(),gold=cs.getPropertyValue("--gold").trim();
+ const pad={l:50,r:20,t:35,b:35},pw=w-pad.l-pad.r,ph=h-pad.t-pad.b,max=Math.max(.001,...dates.map(k=>Math.max(g[k].c,g[k].n)))*1.28;
+ x.strokeStyle=line;x.fillStyle=mut;x.font="11px sans-serif";
+ for(let i=0;i<=4;i++){let y=pad.t+ph*i/4;x.beginPath();x.moveTo(pad.l,y);x.lineTo(w-pad.r,y);x.stroke();x.fillText(((4-i)/4*max).toFixed(2)+" t",5,y+4)}
+ function series(key,color,goldSeries){
+  x.beginPath();dates.forEach((d,i)=>{let px=pad.l+(dates.length===1?pw/2:pw*i/(dates.length-1)),py=pad.t+ph-g[d][key]/max*ph;i?x.lineTo(px,py):x.moveTo(px,py)});x.strokeStyle=color;x.lineWidth=2.5;x.stroke();
+  dates.forEach((d,i)=>{let px=pad.l+(dates.length===1?pw/2:pw*i/(dates.length-1)),py=pad.t+ph-g[d][key]/max*ph;
+   x.fillStyle=color;x.beginPath();x.arc(px,py,4,0,Math.PI*2);x.fill();x.fillStyle="#fff";x.beginPath();x.arc(px,py,2,0,Math.PI*2);x.fill();
+   x.fillStyle=color;x.font="bold 10px sans-serif";x.fillText(g[d][key].toFixed(2),px-11,py+(goldSeries?13:-7));
+   if(!goldSeries){x.fillStyle=mut;x.font="10px sans-serif";x.fillText(d.slice(5),px-13,h-10)}
+  })
+ }
+ series("n",gold,true);series("c",blue,false);
+ x.fillStyle=blue;x.fillRect(pad.l,8,12,12);x.fillStyle=mut;x.font="bold 12px sans-serif";x.fillText("ทราย CDE (ตัน)",pad.l+18,18);
+ x.fillStyle=gold;x.fillRect(pad.l+140,8,12,12);x.fillStyle=mut;x.fillText("ทรายธรรมดา (ตัน)",pad.l+158,18);
+}
+function renderFullHistory(){
+ const q=($("historySearchTab").value||"").toLowerCase();
+ const a=[...entries].sort((x,y)=>(y.date+(y.createdAt||"")).localeCompare(x.date+(x.createdAt||""))).filter(e=>(e.date+" "+(e.mixCode||"")+" "+(e.mixVariant||"")+" "+(e.mixName||"")).toLowerCase().includes(q));
+ $("fullHistoryTable").innerHTML=a.length?a.map(e=>`<tr>
+ <td><b>${esc(e.date)}</b></td><td><b>${esc(e.mixCode)}</b></td><td><span class="badge info">${esc(e.mixVariant||"STANDARD")}</span></td>
+ <td style="text-align:right"><b>${fmt(e.qty,2)}</b></td><td style="text-align:right">${fmt(e.cdeKg,1)}</td>
+ <td style="text-align:right;color:var(--blue);font-weight:700">${fmt(e.cdeTon,3)}</td><td style="text-align:right">${fmt(e.normalKg,1)}</td>
+ <td style="text-align:right;color:var(--gold);font-weight:700">${fmt(e.normalTon,3)}</td><td style="text-align:right;font-weight:700">${fmt(num(e.cdeTon)+num(e.normalTon),3)}</td>
+ <td style="text-align:center"><button type="button" class="btn danger sm" data-del="${esc(e.id)}">ลบ</button></td></tr>`).join("")
+ :'<tr><td colspan="10" class="empty">ไม่พบรายการประวัติการเบิกใช้</td></tr>';
+ $("fullHistoryTable").querySelectorAll("[data-del]").forEach(b=>b.onclick=deleteEntry);
+ const totQty=entries.reduce((s,e)=>s+num(e.qty),0),totCde=entries.reduce((s,e)=>s+num(e.cdeTon),0),totNorm=entries.reduce((s,e)=>s+num(e.normalTon),0);
+ $("histTotalCount").textContent=entries.length+" รายการ";$("histTotalQty").textContent=fmt(totQty,2)+" m³";
+ $("histTotalCde").textContent=fmt(totCde,3)+" t";$("histTotalNorm").textContent=fmt(totNorm,3)+" t";
+ $("histResultCount").textContent=`แสดง ${a.length} จากทั้งหมด ${entries.length} รายการ`;
+}
+function renderAll(){options();renderMixTable();preview();renderHeroStats();renderDashboard();renderFullHistory();renderChart()}
 
-    function renderHeroStats(){
-      let dSel=$("dashDate").value||today();
-      let dayEntries=entries.filter(e=>e.date===dSel);
-      let dCde=dayEntries.reduce((s,e)=>s+e.cdeTon,0);
-      let dNorm=dayEntries.reduce((s,e)=>s+e.normalTon,0);
-      let allCde=entries.reduce((s,e)=>s+e.cdeTon,0);
-      $("heroCde").textContent=fmt(dCde,3)+" t";
-      $("heroNorm").textContent=fmt(dNorm,3)+" t";
-      $("heroAll").textContent=fmt(allCde,3)+" t";
-    }
+function download(fn,content,mime){
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([content],{type:mime}));a.download=fn;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+}
+function csv(rows){return "\ufeff"+rows.map(a=>a.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\n")}
+function exportHistoryCsv(){
+ download("cde-sand-all-history-"+today()+".csv",csv([["วันที่","MixCode","ชื่อMix","Variant","คอนกรีต(m3)","CDE(kg)","CDE(ton)","Normal(kg)","Normal(ton)","รวมทราย(ton)"],...entries.map(e=>[e.date,e.mixCode,e.mixName,e.mixVariant,e.qty,e.cdeKg,e.cdeTon,e.normalKg,e.normalTon,(num(e.cdeTon)+num(e.normalTon)).toFixed(3)])]),"text/csv;charset=utf-8")
+}
+function exportDashboardCsv(){
+ const d=$("dashDate").value||today(),list=entries.filter(e=>e.date===d);
+ download("cde-sand-dashboard-"+d+".csv",csv([["วันที่","MixCode","Variant","คอนกรีต(m3)","CDE(ton)","Normal(ton)"],...list.map(e=>[e.date,e.mixCode,e.mixVariant,e.qty,e.cdeTon,e.normalTon])]),"text/csv;charset=utf-8")
+}
+function exportChartCsv(){
+ const g={};entries.forEach(e=>{g[e.date]??={c:0,n:0};g[e.date].c+=num(e.cdeTon);g[e.date].n+=num(e.normalTon)});
+ let dates=Object.keys(g).sort(),f=$("chartFrom").value,t=$("chartTo").value;if(f)dates=dates.filter(d=>d>=f);if(t)dates=dates.filter(d=>d<=t);
+ download("cde-sand-chart-daily-"+today()+".csv",csv([["วันที่","ทราย CDE (ตัน)","ทรายธรรมดา (ตัน)","รวมทราย (ตัน)"],...dates.map(d=>[d,g[d].c.toFixed(3),g[d].n.toFixed(3),(g[d].c+g[d].n).toFixed(3)])]),"text/csv;charset=utf-8")
+}
+function backup(){download("cde-sand-backup-"+today()+".json",JSON.stringify({version:5,exportedAt:new Date().toISOString(),mixes,entries,printState:ps},null,2),"application/json")}
 
-    function renderDashboard(){
-      let dSel=$("dashDate").value||today();
-      let list=entries.filter(e=>e.date===dSel);
-      $("dEntries").textContent=list.length.toLocaleString()+" รายการ";
-      $("dQty").textContent=fmt(list.reduce((s,e)=>s+e.qty,0),2)+" m³";
-      $("dCde").textContent=fmt(list.reduce((s,e)=>s+e.cdeTon,0),3)+" t";
-      $("dNorm").textContent=fmt(list.reduce((s,e)=>s+e.normalTon,0),3)+" t";
-      $("dashListCount").textContent=list.length+" รายการ";
+function openMixModal(){
+ $("mixForm").reset();
+ $("mixModal").classList.add("show");
+ setTimeout(()=>$("mCode").focus(),50);
+}
+function closeMixModal(){$("mixModal").classList.remove("show")}
+$("addMix").onclick=openMixModal;
+$("closeMixModal").onclick=closeMixModal;
+$("cancelMix").onclick=closeMixModal;
+$("mixModal").onclick=e=>{if(e.target===$("mixModal"))closeMixModal()};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMixModal()});
 
-      $("dayHistory").innerHTML=list.length?list.map(e=>`
-        <tr>
-          <td>${esc(e.date)}</td>
-          <td><b>${esc(e.mixCode)}</b></td>
-          <td><span class="badge ${e.mixVariant==='SPECIAL'?'warning':'info'}">${esc(e.mixVariant||'STANDARD')}</span></td>
-          <td>${fmt(e.qty)}</td>
-          <td style="color:var(--blue);font-weight:700">${fmt(e.cdeTon,3)}</td>
-          <td style="color:var(--gold);font-weight:700">${fmt(e.normalTon,3)}</td>
-          <td><button class="btn danger sm" data-del="${e.id}">ลบ</button></td>
-        </tr>
-      `).join(""):'<tr><td colspan="7" class="center" style="padding:20px;color:var(--muted)">ไม่มีรายการในวันนี้</td></tr>';
+$("mixForm").onsubmit=e=>{
+ e.preventDefault();
+ const code=$("mCode").value.trim(),variant=$("mVariant").value.trim(),cde=num($("mCde").value),normal=num($("mNormal").value),note=$("mNote").value.trim();
+ if(!code||!variant)return alert("กรุณากรอก Code และ Variant");
+ if(mixes.some(m=>m.code.toLowerCase()===code.toLowerCase()))return alert("Code นี้มีอยู่แล้ว กรุณาใช้ Code อื่น");
+ const m={id:uid("m"),code,name:note||code,variant,cde,normal,note,active:true};
+ mixes.push(m);save();closeMixModal();renderAll();
+ $("eMix").value=m.id;preview();
+ alert("เพิ่ม Mix Design สำเร็จ");
+};
 
-      $("dayHistory").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
-        if(confirm("ลบรายการนี้หรือไม่?")){
-          entries=entries.filter(e=>e.id!==b.dataset.del);
-          save();renderAll();
-        }
-      });
-      renderHeroStats();
-    }
+$("restore").onclick=()=>$("file").click();
+$("file").onchange=e=>{
+ const f=e.target.files[0];if(!f)return;
+ const r=new FileReader();r.onload=ev=>{
+  try{
+   const data=JSON.parse(ev.target.result);
+   if(Array.isArray(data.mixes))mixes=data.mixes.map(m=>({...m,active:m.active!==false}));
+   if(Array.isArray(data.entries))entries=data.entries;
+   if(data.printState)ps=data.printState;
+   save();renderAll();alert("นำเข้าข้อมูลสำเร็จแล้ว!");
+  }catch(err){alert("ไฟล์ไม่ถูกต้อง")}
+  e.target.value="";
+ };r.readAsText(f)
+};
 
-    // Chart: ดึงทั้งทราย CDE และทรายธรรมดา
-    function renderChart(){
-      let c=$("chart"),r=c.getBoundingClientRect(),dpr=devicePixelRatio||1,w=Math.max(320,r.width),h=320;
-      c.width=w*dpr;c.height=h*dpr;
-      let x=c.getContext("2d");
-      x.setTransform(dpr,0,0,dpr,0,0);
-      x.clearRect(0,0,w,h);
+$("eMix").onchange=preview;$("eQty").oninput=preview;
+$("dashDate").onchange=()=>{renderDashboard();renderHeroStats()};
+$("dashToday").onclick=()=>{$("dashDate").value=today();renderDashboard();renderHeroStats()};
+$("chartFrom").onchange=renderChart;$("chartTo").onchange=renderChart;
+$("chartPreset7").onclick=()=>{let d=new Date();d.setDate(d.getDate()-7);$("chartFrom").value=d.toISOString().slice(0,10);$("chartTo").value=today();renderChart()};
+$("chartPreset14").onclick=()=>{let d=new Date();d.setDate(d.getDate()-14);$("chartFrom").value=d.toISOString().slice(0,10);$("chartTo").value=today();renderChart()};
+$("chartPreset30").onclick=()=>{let d=new Date();d.setDate(d.getDate()-30);$("chartFrom").value=d.toISOString().slice(0,10);$("chartTo").value=today();renderChart()};
+$("chartReset").onclick=()=>{$("chartFrom").value="";$("chartTo").value="";renderChart()};
+$("theme").onclick=()=>{document.body.classList.toggle("dark");save();renderChart()};
+$("toggleMix").onclick=()=>{hidden=!hidden;renderMixTable()};
+$("refresh").onclick=()=>location.reload();
+$("dashExportCsv").onclick=exportDashboardCsv;$("chartExportCsv").onclick=exportChartCsv;$("historyTabCsv").onclick=exportHistoryCsv;
+$("historySearchTab").oninput=renderFullHistory;$("backup").onclick=backup;
+$("clearHistoryTab").onclick=()=>{if(confirm("ล้างประวัติการเบิกใช้ทั้งหมดหรือไม่? (Mix Design จะยังคงอยู่)")){entries=[];save();renderAll()}};
+$("reset").onclick=()=>{if(confirm("รีเซ็ตระบบ Mix + ประวัติทั้งหมดกลับเป็นค่าเริ่มต้นหรือไม่?")){mixes=defaults.map(x=>({...x}));entries=[];ps={};save();renderAll()}};
+$("openPrintBtn").onclick=()=>{$("main").style.display="none";$("printPage").style.display="block";$("bCde").textContent=fmt(entries.reduce((s,e)=>s+num(e.cdeKg),0),1)+" kg";$("bNorm").textContent=fmt(entries.reduce((s,e)=>s+num(e.normalKg),0),1)+" kg"};
+$("closePrintBtn").onclick=()=>{$("printPage").style.display="none";$("main").style.display="block"};
+$("printBtn").onclick=()=>window.print();
+$("aCde").oninput=$("aNorm").oninput=()=>{ps.aCde=num($("aCde").value);ps.aNorm=num($("aNorm").value);save()};
 
-      let g={};
-      entries.forEach(e=>{
-        g[e.date]??={c:0,n:0};
-        g[e.date].c+=Number(e.cdeTon||0);
-        g[e.date].n+=Number(e.normalTon||0);
-      });
-
-      let allDates=Object.keys(g).sort();
-      let filteredDates=allDates;
-      let fFrom=$("chartFrom").value, fTo=$("chartTo").value;
-      if(fFrom){filteredDates=filteredDates.filter(d=>d>=fFrom)}
-      if(fTo){filteredDates=filteredDates.filter(d=>d<=fTo)}
-      if(!fFrom && !fTo && filteredDates.length>14){filteredDates=filteredDates.slice(-14)}
-
-      $("chartRange").textContent=filteredDates.length?filteredDates[0]+" ถึง "+filteredDates.at(-1):"ยังไม่มีข้อมูลตามช่วงวันที่เลือก";
-      if(!filteredDates.length){
-        x.fillStyle="#888";x.font="14px sans-serif";x.fillText("ไม่มีข้อมูลการเบิกใช้ทรายในช่วงนี้",w/2-100,h/2);
-        return;
-      }
-
-      let cs=getComputedStyle(document.body);
-      let line=cs.getPropertyValue("--line").trim()||"#d8dee8";
-      let mut=cs.getPropertyValue("--muted").trim()||"#64748b";
-      let blue=cs.getPropertyValue("--blue").trim()||"#2563eb";
-      let gold=cs.getPropertyValue("--gold").trim()||"#d97706";
-
-      let pad={l:50,r:20,t:35,b:35},pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;
-      let max=Math.max(.001,...filteredDates.map(k=>Math.max(g[k].c,g[k].n)))*1.28;
-
-      // Grid lines
-      x.strokeStyle=line;x.fillStyle=mut;x.font="11px sans-serif";
-      for(let i=0;i<=4;i++){
-        let y=pad.t+ph*i/4;
-        x.beginPath();x.moveTo(pad.l,y);x.lineTo(w-pad.r,y);x.stroke();
-        x.fillText(((4-i)/4*max).toFixed(2)+" t",5,y+4);
-      }
-
-      function drawSeries(key, color, isGold){
-        x.beginPath();
-        filteredDates.forEach((d,i)=>{
-          let px=pad.l+(filteredDates.length===1?pw/2:pw*i/(filteredDates.length-1));
-          let py=pad.t+ph-g[d][key]/max*ph;
-          i?x.lineTo(px,py):x.moveTo(px,py);
-        });
-        x.strokeStyle=color;
-        x.lineWidth=2.5;
-        x.stroke();
-
-        filteredDates.forEach((d,i)=>{
-          let px=pad.l+(filteredDates.length===1?pw/2:pw*i/(filteredDates.length-1));
-          let py=pad.t+ph-g[d][key]/max*ph;
-
-          x.fillStyle=color;
-          x.beginPath();x.arc(px,py,4,0,Math.PI*2);x.fill();
-          x.fillStyle="#fff";
-          x.beginPath();x.arc(px,py,2,0,Math.PI*2);x.fill();
-
-          x.fillStyle=color;
-          x.font="bold 10px sans-serif";
-          let offset=isGold?13:-7;
-          x.fillText(g[d][key].toFixed(2),px-11,py+offset);
-
-          if(!isGold){
-            x.fillStyle=mut;
-            x.font="10px sans-serif";
-            x.fillText(d.slice(5),px-13,h-10);
-          }
-        });
-      }
-
-      drawSeries("n", gold, true);
-      drawSeries("c", blue, false);
-
-      // Legends
-      x.fillStyle=blue;x.fillRect(pad.l,8,12,12);
-      x.fillStyle=mut;x.font="bold 12px sans-serif";
-      x.fillText("ทราย CDE (ตัน)",pad.l+18,18);
-
-      x.fillStyle=gold;x.fillRect(pad.l+140,8,12,12);
-      x.fillStyle=mut;x.font="bold 12px sans-serif";
-      x.fillText("ทรายธรรมดา (ตัน)",pad.l+158,18);
-    }
-
-    // ประวัติการเบิกใช้ทั้งหมดในระบบ
-    function renderFullHistory(){
-      let q=($("historySearchTab")?$("historySearchTab").value:"").toLowerCase();
-      let a=[...entries].sort((x,y)=>(y.date+(y.createdAt||"")).localeCompare(x.date+(x.createdAt||"")))
-                        .filter(e=>(e.date+" "+(e.mixCode||"")+" "+(e.mixVariant||"")).toLowerCase().includes(q));
-
-      if($("fullHistoryTable")){
-        $("fullHistoryTable").innerHTML=a.length?a.map(e=>`
-          <tr>
-            <td><b>${esc(e.date)}</b></td>
-            <td><b>${esc(e.mixCode)}</b></td>
-            <td><span class="badge ${e.mixVariant==='SPECIAL'?'warning':'info'}">${esc(e.mixVariant||'STANDARD')}</span></td>
-            <td style="text-align:right"><b>${fmt(e.qty,2)}</b></td>
-            <td style="text-align:right">${fmt(e.cdeKg,1)}</td>
-            <td style="text-align:right;color:var(--blue);font-weight:700">${fmt(e.cdeTon,3)}</td>
-            <td style="text-align:right">${fmt(e.normalKg,1)}</td>
-            <td style="text-align:right;color:var(--gold);font-weight:700">${fmt(e.normalTon,3)}</td>
-            <td style="text-align:right;font-weight:700">${fmt(Number(e.cdeTon||0)+Number(e.normalTon||0),3)}</td>
-            <td style="text-align:center"><button class="btn danger sm" data-del="${e.id}">ลบ</button></td>
-          </tr>
-        `).join(""):'<tr><td colspan="10" class="center" style="padding:24px;color:var(--muted)">ไม่พบรายการประวัติการเบิกใช้</td></tr>';
-
-        $("fullHistoryTable").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
-          if(confirm("ลบรายการเบิกใช้นี้หรือไม่?")){
-            entries=entries.filter(e=>e.id!==b.dataset.del);
-            save();renderAll();
-          }
-        });
-      }
-
-      if($("histTotalCount")){
-        let totQty=entries.reduce((s,e)=>s+Number(e.qty||0),0);
-        let totCde=entries.reduce((s,e)=>s+Number(e.cdeTon||0),0);
-        let totNorm=entries.reduce((s,e)=>s+Number(e.normalTon||0),0);
-        $("histTotalCount").textContent=entries.length.toLocaleString()+" รายการ";
-        $("histTotalQty").textContent=fmt(totQty,2)+" m³";
-        $("histTotalCde").textContent=fmt(totCde,3)+" t";
-        $("histTotalNorm").textContent=fmt(totNorm,3)+" t";
-        if($("histResultCount")) $("histResultCount").textContent=`แสดง ${a.length} จากทั้งหมด ${entries.length} รายการ`;
-      }
-    }
-
-    function renderAll(){
-      options();
-      renderMixTable();
-      preview();
-      renderHeroStats();
-      renderDashboard();
-      renderFullHistory();
-      renderChart();
-    }
-
-    // CSV Exporters
-    function download(fn,content,mime){
-      let a=document.createElement("a");
-      a.href=URL.createObjectURL(new Blob([content],{type:mime}));
-      a.download=fn;a.click();
-    }
-
-    function exportHistoryCsv(){
-      let h=["วันที่","MixCode","ชื่อMix","Variant","คอนกรีต(m3)","CDE(kg)","CDE(ton)","Normal(kg)","Normal(ton)","รวมทราย(ton)"];
-      let r=entries.map(e=>[e.date,e.mixCode,e.mixName,e.mixVariant,e.qty,e.cdeKg,e.cdeTon,e.normalKg,e.normalTon,(e.cdeTon+e.normalTon).toFixed(3)]);
-      let s=[h,...r].map(a=>a.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\n");
-      download("cde-sand-all-history-"+today()+".csv","\ufeff"+s,"text/csv;charset=utf-8");
-    }
-
-    function exportDashboardCsv(){
-      let dSel=$("dashDate").value||today();
-      let list=entries.filter(e=>e.date===dSel);
-      let h=["วันที่","MixCode","Variant","คอนกรีต(m3)","CDE(ton)","Normal(ton)"];
-      let r=list.map(e=>[e.date,e.mixCode,e.mixVariant,e.qty,e.cdeTon,e.normalTon]);
-      let s=[h,...r].map(a=>a.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\n");
-      download("cde-sand-dashboard-"+dSel+".csv","\ufeff"+s,"text/csv;charset=utf-8");
-    }
-
-    function exportChartCsv(){
-      let g={};
-      entries.forEach(e=>{
-        g[e.date]??={c:0,n:0};
-        g[e.date].c+=Number(e.cdeTon||0);
-        g[e.date].n+=Number(e.normalTon||0);
-      });
-      let fFrom=$("chartFrom").value, fTo=$("chartTo").value;
-      let dates=Object.keys(g).sort();
-      if(fFrom)dates=dates.filter(d=>d>=fFrom);
-      if(fTo)dates=dates.filter(d=>d<=fTo);
-
-      let h=["วันที่","ทราย CDE (ตัน)","ทรายธรรมดา (ตัน)","รวมทราย (ตัน)"];
-      let r=dates.map(d=>[d,g[d].c.toFixed(3),g[d].n.toFixed(3),(g[d].c+g[d].n).toFixed(3)]);
-      let s=[h,...r].map(a=>a.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\n");
-      download("cde-sand-chart-daily-"+today()+".csv","\ufeff"+s,"text/csv;charset=utf-8");
-    }
-
-    // Backup & Restore
-    function backup(){
-      download("cde-sand-backup-"+today()+".json",JSON.stringify({version:4,exportedAt:new Date().toISOString(),mixes,entries,printState:ps},null,2),"application/json");
-    }
-
-    $("restore").onclick=()=>$("file").click();
-    $("file").onchange=e=>{
-      let f=e.target.files[0];if(!f)return;
-      let r=new FileReader();
-      r.onload=ev=>{
-        try{
-          let data=JSON.parse(ev.target.result);
-          if(Array.isArray(data.mixes)) mixes=data.mixes;
-          if(Array.isArray(data.entries)) entries=data.entries;
-          if(data.printState) ps=data.printState;
-          save();renderAll();
-          alert("นำเข้าข้อมูลสำเร็จแล้ว!");
-        }catch(err){alert("ไฟล์ไม่ถูกต้อง");}
-      };
-      r.readAsText(f);
-    };
-
-    // Events Setup
-    $("eMix").onchange=preview;
-    $("eQty").oninput=preview;
-    $("dashDate").onchange=()=>{renderDashboard();renderHeroStats()};
-    $("dashToday").onclick=()=>{$("dashDate").value=today();renderDashboard();renderHeroStats()};
-    $("chartFrom").onchange=renderChart;
-    $("chartTo").onchange=renderChart;
-    $("chartPreset7").onclick=()=>{
-      let d=new Date();d.setDate(d.getDate()-7);
-      $("chartFrom").value=d.toISOString().slice(0,10);
-      $("chartTo").value=today();
-      renderChart();
-    };
-    $("chartPreset14").onclick=()=>{
-      let d=new Date();d.setDate(d.getDate()-14);
-      $("chartFrom").value=d.toISOString().slice(0,10);
-      $("chartTo").value=today();
-      renderChart();
-    };
-    $("chartPreset30").onclick=()=>{
-      let d=new Date();d.setDate(d.getDate()-30);
-      $("chartFrom").value=d.toISOString().slice(0,10);
-      $("chartTo").value=today();
-      renderChart();
-    };
-    $("chartReset").onclick=()=>{$("chartFrom").value="";$("chartTo").value="";renderChart()};
-    $("theme").onclick=()=>{document.body.classList.toggle("dark");save();renderChart()};
-    $("toggleMix").onclick=()=>{hidden=!hidden;renderMixTable()};
-    $("refresh").onclick=()=>location.reload();
-    $("dashExportCsv").onclick=exportDashboardCsv;
-    $("chartExportCsv").onclick=exportChartCsv;
-    $("historyTabCsv").onclick=exportHistoryCsv;
-    $("historySearchTab").oninput=renderFullHistory;
-    $("backup").onclick=backup;
-    $("clearHistoryTab").onclick=()=>{
-      if(confirm("ล้างประวัติการเบิกใช้ทั้งหมดในระบบหรือไม่? (Mix Design จะยังคงอยู่)")){
-        entries=[];save();renderAll();
-      }
-    };
-    $("reset").onclick=()=>{
-      if(confirm("รีเซ็ตระบบ Mix + ประวัติทั้งหมดกลับเป็นค่าเริ่มต้นหรือไม่?")){
-        mixes=defaults;entries=[];ps={};save();renderAll();
-      }
-    };
-    $("openPrintBtn").onclick=()=>{$("main").style.display="none";$("printPage").style.display="block"};
-    $("closePrintBtn").onclick=()=>{$("printPage").style.display="none";$("main").style.display="block"};
-    $("printBtn").onclick=()=>window.print();
-
-    // Initial Start
-    load();
-    $("eDate").value=today();
-    $("dashDate").value=today();
-    renderAll();
-    window.onresize=renderChart;
-  </script>
+load();
+$("eDate").value=today();$("dashDate").value=today();
+$("aCde").value=num(ps.aCde);$("aNorm").value=num(ps.aNorm);
+renderAll();
+window.onresize=()=>renderChart();
+</script>
 </body>
 </html>
